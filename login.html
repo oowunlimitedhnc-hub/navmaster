@@ -234,12 +234,21 @@ function handleGoogleToken(token) {
     var name      = info.name     || googleEmail.split('@')[0] || 'User';
     var username  = 'google_' + googleEmail.replace(/[^a-z0-9]/gi, '_');
     err.textContent = 'Signing in…';
-    return gasPost('register', {
+    // Try login first for existing Google accounts, fallback to register
+    return gasPost('login', {
       username: username,
-      name:     name,
-      email:    googleEmail,
-      picture:  googlePicture,
-      provider: 'google'
+      provider: 'google',
+      email:    googleEmail
+    }).then(function(loginRes) {
+      if (loginRes.ok) return loginRes;
+      // Not found — register as new user
+      return gasPost('register', {
+        username: username,
+        name:     name,
+        email:    googleEmail,
+        picture:  googlePicture,
+        provider: 'google'
+      });
     });
   })
   .then(function(res) {

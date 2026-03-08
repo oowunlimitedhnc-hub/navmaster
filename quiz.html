@@ -1857,17 +1857,37 @@ var activeCategory = 'navigation';
 var saveCat = 'navigation';
 var scriptCat = 'navigation';
 
-// Load persisted exams from embedded store
+// Load cached exams + pull latest from GAS on startup
 (function() {
   var saved = _storeGet('exams');
   if (Array.isArray(saved) && saved.length) {
     exams = saved;
-    // Update badge after DOM ready
     setTimeout(function() {
       var badge = document.getElementById('examBadge');
       if (badge) badge.textContent = exams.length;
     }, 0);
   }
+  // Background fetch from GAS to sync latest scripts
+  setTimeout(function() {
+    gasGet('getScripts', {}).then(function(res) {
+      if (!res.ok || !res.scripts) return;
+      var changed = false;
+      res.scripts.forEach(function(s) {
+        var exists = exams.some(function(e) { return e.name === s.name; });
+        if (!exists && s.questions) {
+          var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
+          exams.push({ name:s.name, desc:'By '+(s.createdBy||'admin'), category:s.category||'navigation',
+            questions:qs, date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'' });
+          changed = true;
+        }
+      });
+      if (changed) {
+        _storeSet('exams', exams);
+        var badge = document.getElementById('examBadge');
+        if (badge) badge.textContent = exams.length;
+      }
+    }).catch(function(){});
+  }, 1500);
 })();
 
 function resetState() {
@@ -1879,7 +1899,6 @@ function resetState() {
 resetState();
 
 /* ══════ RENDER ══════ */
-function render() {
 
 
 /* ====================================================
@@ -2072,6 +2091,7 @@ async function confirmUpdateAnswer(qi, challengeId) {
 }
 window.confirmUpdateAnswer = confirmUpdateAnswer;
 
+function render() {
   const wrap = document.getElementById('quizWrap');
   wrap.innerHTML = '';
 
@@ -2551,7 +2571,32 @@ function _syncToGas(callback) {
 }
 
 /* ══════ EXAM LIBRARY ══════ */
-window.openExams = function openExams() { renderExams(); openM('examsM'); }
+window.openExams = async function openExams() {
+  openM('examsM');
+  // Always pull latest scripts from GAS so admin-saved scripts appear for candidates
+  try {
+    var res = await gasGet('getScripts', {});
+    if (res.ok && res.scripts && res.scripts.length) {
+      // Merge GAS scripts into local exams array (avoid duplicates by name)
+      res.scripts.forEach(function(s) {
+        var exists = exams.some(function(e) { return e.name === s.name; });
+        if (!exists && s.questions) {
+          var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
+          exams.push({
+            name:      s.name,
+            desc:      'By ' + (s.createdBy || 'admin'),
+            category:  s.category || 'navigation',
+            questions: qs,
+            date:      s.created ? new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : ''
+          });
+        }
+      });
+      document.getElementById('examBadge').textContent = exams.length;
+      _storeSet('exams', exams);
+    }
+  } catch(e) { /* offline — use cached exams */ }
+  renderExams();
+}
 
 function switchCat(cat) {
   activeCategory = cat;
