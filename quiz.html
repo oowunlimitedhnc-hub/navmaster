@@ -1021,16 +1021,15 @@
     </div>
     <div class="m-body">
       <div class="admin-tabs">
-        <button class="admin-tab active" id="atab-scripts" onclick="switchAdminTab('scripts')">Script Library<span class="admin-badge" id="scriptStoreBadge">0</span></button>
+        <button class="admin-tab active" id="atab-challenges" onclick="switchAdminTab('challenges')">Challenges <span class="admin-badge" id="challengeBadge" style="background:rgba(239,68,68,0.2);color:#f87171;border-color:rgba(239,68,68,0.3);">0</span></button>
+        <button class="admin-tab" id="atab-scripts" onclick="switchAdminTab('scripts')">Script Library<span class="admin-badge" id="scriptStoreBadge">0</span></button>
         <button class="admin-tab" id="atab-records" onclick="switchAdminTab('records')">All User Records</button>
         <button class="admin-tab" id="atab-users" onclick="switchAdminTab('users')">Users</button>
         <button class="admin-tab" id="atab-questions" onclick="switchAdminTab('questions')">Edit Questions</button>
-        <button class="admin-tab" id="atab-challenges" onclick="switchAdminTab('challenges')">Challenges <span class="admin-badge" id="challengeBadge" style="background:rgba(239,68,68,0.2);color:#f87171;border-color:rgba(239,68,68,0.3);">0</span></button>
-        <button class="admin-tab" id="atab-challenges" onclick="switchAdminTab('challenges')">Challenges <span class="admin-badge" id="challengeBadge" style="background:rgba(239,68,68,0.2);color:#f87171;border-color:rgba(239,68,68,0.3);">0</span></button>
       </div>
 
       <!-- SCRIPTS PANEL -->
-      <div class="admin-panel active" id="apanel-scripts">
+      <div class="admin-panel" id="apanel-scripts">
         <div id="scriptStoreList"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading…</div></div>
       </div>
 
@@ -1046,7 +1045,7 @@
       </div>
 
       <!-- CHALLENGES PANEL -->
-      <div class="admin-panel" id="apanel-challenges">
+      <div class="admin-panel active" id="apanel-challenges">
         <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;">Review and resolve candidate question challenges below.</div>
         <div id="adminChallengesList"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div></div>
       </div>
@@ -1059,7 +1058,7 @@
       </div>
 
       <!-- CHALLENGES PANEL -->
-      <div class="admin-panel" id="apanel-challenges">
+      <div class="admin-panel active" id="apanel-challenges">
         <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;">
           Review candidate challenges below. Accept to mark as valid, Reject to dismiss.
         </div>
@@ -1936,10 +1935,12 @@ async function renderAdminChallenges() {
     var list    = (res.ok && res.challenges) ? res.challenges : [];
     var pending = list.filter(function(c){ return c.status === 'pending'; }).length;
     if (badge) badge.textContent = pending;
+    window._lastChallenges = list;
     if (!list.length) {
       el.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted);">No challenges yet.</div>';
       return;
     }
+    window._lastChallenges = list;
     var html = '';
     list.forEach(function(c) {
       var resolved = c.status !== 'pending';
@@ -1975,11 +1976,92 @@ async function renderAdminChallenges() {
 }
 window.renderAdminChallenges = renderAdminChallenges;
 
-async function resolveChallenge(id,decision) {
-  var note=prompt(decision==='accepted'?'Note (optional):':'Reason (optional):')||'';
-  try{var res=await gasPost('resolveChallenge',{id:id,status:decision,resolvedNote:note});if(res.ok)await renderAdminChallenges();else alert('Error: '+(res.error||'Could not resolve.'));}catch(e){alert('Network error.');}
+async function resolveChallenge(id, decision) {
+  var note = '';
+  if (decision === 'accepted') {
+    note = prompt('Optional note (e.g. answer updated in system):') || '';
+    // Ask if admin wants to update the question answer
+    var update = confirm('Do you want to update the correct answer(s) for this question in the quiz?');
+    if (update) {
+      openUpdateAnswerModal(id);
+      return;
+    }
+  } else {
+    note = prompt('Reason for rejection (optional):') || '';
+  }
+  try {
+    var res = await gasPost('resolveChallenge', { id: id, status: decision, resolvedNote: note });
+    if (res.ok) { await renderAdminChallenges(); }
+    else { alert('Error: ' + (res.error || 'Could not resolve.')); }
+  } catch(e) { alert('Network error.'); }
 }
 window.resolveChallenge = resolveChallenge;
+
+function openUpdateAnswerModal(challengeId) {
+  // Find the challenge in the current list
+  var cards = document.querySelectorAll('#adminChallengesList .challenge-card');
+  var challengeData = window._lastChallenges ? window._lastChallenges.find(function(c){ return String(c.id) === String(challengeId); }) : null;
+  if (!challengeData) { alert('Could not find challenge data. Please refresh.'); return; }
+
+  var qi = Number(challengeData.questionIndex);
+  if (qi < 0 || qi >= questions.length) { alert('Question index out of range.'); return; }
+  var q = questions[qi];
+
+  // Build modal HTML
+  var html = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;" id="updateAnswerOverlay">'
+    + '<div style="background:#0f1929;border:1px solid #1c2d42;border-radius:16px;padding:1.5rem;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;">'
+    + '<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#eef3f7;font-weight:700;margin-bottom:0.5rem;">Update Correct Answer</div>'
+    + '<div style="font-size:0.72rem;color:#8a9ab0;font-family:DM Mono,monospace;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1rem;">Q' + (qi+1) + '</div>'
+    + '<div style="font-size:0.84rem;color:#c5d3e0;margin-bottom:1.2rem;line-height:1.5;padding:0.7rem;background:rgba(255,255,255,0.03);border-radius:8px;">' + q.title + '</div>'
+    + '<div style="font-size:0.7rem;color:#8a9ab0;font-family:DM Mono,monospace;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.6rem;">Select the correct answer(s):</div>'
+    + q.options.map(function(o, oi) {
+        return '<label style="display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.8rem;border-radius:8px;border:1px solid ' + (o.isCorrect ? '#2dd4bf' : '#1c2d42') + ';background:' + (o.isCorrect ? 'rgba(45,212,191,0.08)' : 'rgba(255,255,255,0.02)') + ';margin-bottom:0.4rem;cursor:pointer;" onclick="window.toggleUpdateOpt(this)">'
+          + '<input type="checkbox" data-oi="' + oi + '" ' + (o.isCorrect ? 'checked' : '') + ' style="accent-color:#2dd4bf;width:15px;height:15px;flex-shrink:0;pointer-events:none;">'
+          + '<span style="font-size:0.83rem;color:#c5d3e0;">' + o.text + '</span>'
+          + '</label>';
+      }).join('')
+    + '<div style="font-size:0.7rem;color:#8a9ab0;font-family:DM Mono,monospace;letter-spacing:0.06em;text-transform:uppercase;margin:1rem 0 0.4rem;">Admin note:</div>'
+    + '<textarea id="updateAnswerNote" rows="2" placeholder="Optional note..." style="width:100%;background:rgba(255,255,255,0.04);border:1px solid #1c2d42;border-radius:8px;padding:0.7rem;color:#eef3f7;font-family:DM Sans,sans-serif;font-size:0.82rem;resize:vertical;box-sizing:border-box;"></textarea>'
+    + '<div style="display:flex;gap:0.7rem;margin-top:1.2rem;justify-content:flex-end;">'
+    + '<button onclick="window.closeUpdateAnswer()" style="padding:0.5rem 1.2rem;background:transparent;border:1px solid #1c2d42;border-radius:8px;color:#8a9ab0;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>'
+    + '<button onclick="window.confirmUpdateAnswer(' + qi + ',' + JSON.stringify(challengeId) + ')" style="padding:0.5rem 1.4rem;background:linear-gradient(135deg,#2dd4bf,#0d9488);border:none;border-radius:8px;color:#0b1120;font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer;">Update &amp; Accept</button>'
+    + '</div>'
+    + '</div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+window.openUpdateAnswerModal = openUpdateAnswerModal;
+
+
+function closeUpdateAnswer() { var o=document.getElementById("updateAnswerOverlay"); if(o)o.remove(); }
+window.closeUpdateAnswer = closeUpdateAnswer;
+
+function toggleUpdateOpt(el) {
+  var cb = el.querySelector('input[type=checkbox]');
+  if (cb) cb.checked = !cb.checked;
+}
+window.toggleUpdateOpt = toggleUpdateOpt;
+
+async function confirmUpdateAnswer(qi, challengeId) {
+  var overlay = document.getElementById('updateAnswerOverlay');
+  var checked = Array.from(overlay.querySelectorAll('input[type=checkbox]:checked')).map(function(cb){ return Number(cb.dataset.oi); });
+  var note    = (overlay.querySelector('#updateAnswerNote').value || '').trim();
+  if (!checked.length) { alert('Please select at least one correct answer.'); return; }
+
+  // Update the question in memory
+  questions[qi].options.forEach(function(o, oi) { o.isCorrect = checked.indexOf(oi) !== -1; });
+  render();
+
+  // Resolve the challenge as accepted
+  try {
+    var resolveNote = 'Answer updated. ' + (note || '');
+    var res = await gasPost('resolveChallenge', { id: challengeId, status: 'accepted', resolvedNote: resolveNote });
+    overlay.remove();
+    if (res.ok) { await renderAdminChallenges(); alert('Challenge accepted and answer updated successfully.'); }
+    else { alert('Challenge resolved but could not save to server: ' + (res.error || '')); }
+  } catch(e) { overlay.remove(); alert('Network error saving resolution.'); }
+}
+window.confirmUpdateAnswer = confirmUpdateAnswer;
 
   const wrap = document.getElementById('quizWrap');
   wrap.innerHTML = '';
@@ -2901,7 +2983,7 @@ window.openRecords = openRecords;
 ════════════════════════════════════ */
 async function openAdminPanel() {
   if (!currentUser || !currentUser.isAdmin) return;
-  await switchAdminTab('scripts');
+  await switchAdminTab('challenges');
   openM('adminM');
 }
 
