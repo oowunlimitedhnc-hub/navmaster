@@ -2979,9 +2979,8 @@ window.openRecords = openRecords;
 
 function openRecordsOrChallenges() {
   if (currentUser && currentUser.isAdmin) {
-    // Open admin panel directly on Challenges tab
-    window.openAdmin();
-    setTimeout(function() { window.switchAdminTab('challenges'); }, 300);
+    openM('adminM');
+    setTimeout(function() { window.switchAdminTab('challenges'); }, 200);
   } else {
     window.openRecords();
   }
