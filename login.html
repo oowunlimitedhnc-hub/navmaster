@@ -993,7 +993,8 @@
     </div>
 
     <div class="auth-tabs">
-      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Candidate</button>
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Register</button>
       <button class="auth-tab" id="tabAdmin" onclick="switchAuthTab('admin')" style="color:var(--gold);">Admin</button>
     </div>
 
@@ -1026,12 +1027,39 @@
       <button class="btn-auth" onclick="doLogin()">Sign In</button>
       <div class="auth-err" id="loginErr"></div>
       <div id="googleBtnFallback" style="display:none;"></div>
-      <!-- Hidden — used only to surface Candidate ID after Google auto-registration -->
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="registerForm" style="display:none;">
+      <div class="auth-field">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="e.g. Jason Crasto" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label>Username</label>
+        <input type="text" id="regUser" placeholder="Choose a username" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>Email Address <span style="color:var(--teal);font-size:0.7rem;">— your Candidate ID &amp; password will be sent here</span></label>
+        <input type="email" id="regEmail" placeholder="e.g. jason@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="regPass" placeholder="Min. 4 characters" autocomplete="new-password">
+      </div>
+      <div class="auth-field">
+        <label>Confirm Password</label>
+        <input type="password" id="regPass2" placeholder="Repeat password" autocomplete="new-password">
+      </div>
+      <button class="btn-auth" onclick="doRegister()">Create Account</button>
+      <div class="auth-err" id="registerErr"></div>
+      <!-- Candidate ID shown after successful registration -->
       <div id="registerInline" style="display:none;">
         <div id="regSuccess" style="display:none;margin-top:1rem;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.3);border-radius:10px;padding:0.9rem;text-align:center;">
           <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--teal);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.4rem;">Account Created</div>
           <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.6rem;">Your Candidate ID — save this, you can use it to login</div>
-          <div id="regCandidateId" style="font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--white);letter-spacing:0.15em;background:rgba(255,255,255,0.06);border-radius:8px;padding:0.5rem 1rem;display:inline-block;"></div>
+          <div id="regCandidateId" style="font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--white);letter-spacing:0.15em;background:rgba(255,255,255,0.06);border-radius:8px;padding:0.5rem 1rem;display:inline-block;margin-bottom:0.6rem;"></div>
+          <div id="regEmailNotice" style="display:none;font-size:0.72rem;color:var(--teal);margin-top:0.4rem;">✉ Login details sent to your email</div>
         </div>
       </div>
     </div>
@@ -1588,7 +1616,7 @@ function storeList(prefix, shared=false) { return Promise.resolve(_storeList(pre
    All data (users, records, scripts) lives in Google Sheets.
    Local _STORE is still used for exams/questions in-session.
 ════════════════════════════════════════════════════════════ */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyLRAt0Wx7n6o9rt8Jj0LhYVlqeKO1l2zijo-3-siHS5j7ywDcWiyJv8NKwMjAb_ZB5/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxsLmWUGGSOs9uLZpyt8AszQlNMXRc3S2o54eTv8wGFYJ-n5fN0C-GjV2xt1VYOEyjL/exec';
 
 function gasPost(action, data) {
   return fetch(GAS_URL, {
@@ -2536,8 +2564,8 @@ function saveEditQ(qi) {
 ══════════════════════════════════════ */
 let currentUser = null;
 
-const ADMIN_EMAIL    = 'backitup.crst@gmail.com';
-const ADMIN_PASSWORD = 'JasCra@123';
+const ADMIN_EMAIL    = 'backitup.crst2@gmail.com';
+const ADMIN_PASSWORD = 'JasCra@2328';
 const GOOGLE_CLIENT_ID = '27579080548-rlk6j8p0gomhaf59rqq513mjaio92o64.apps.googleusercontent.com';
 
 /* ── Storage helpers (window.storage with localStorage fallback) ── */
@@ -2742,20 +2770,25 @@ function initAuth() {
 
 /* ── Tab switch ── */
 function switchAuthTab(tab) {
-  document.getElementById('loginForm').style.display = tab !== 'admin' ? '' : 'none';
-  document.getElementById('adminForm').style.display = tab === 'admin' ? '' : 'none';
-  document.getElementById('tabLogin').classList.toggle('active', tab !== 'admin');
-  const tabAdmin = document.getElementById('tabAdmin');
-  if (tabAdmin) tabAdmin.classList.toggle('active', tab === 'admin');
-  // Show logout view if already logged in as admin
+  document.getElementById('loginForm').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('adminForm').style.display    = tab === 'admin'    ? '' : 'none';
+  ['tabLogin','tabRegister','tabAdmin'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  var activeTab = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (activeTab) activeTab.classList.add('active');
   if (tab === 'admin') {
     const isAdmin = currentUser && currentUser.isAdmin;
     document.getElementById('adminLoginFields').style.display = isAdmin ? 'none' : '';
-    document.getElementById('adminLoggedIn').style.display   = isAdmin ? '' : 'none';
+    document.getElementById('adminLoggedIn').style.display    = isAdmin ? '' : 'none';
   }
   const footer = document.getElementById('authFooterText');
   if (footer) footer.textContent = tab === 'admin'
     ? 'Admin access restricted to authorised personnel only.'
+    : tab === 'register'
+    ? 'Your Candidate ID will be shown after registration — save it!'
     : 'Sign in with Google for fastest access. Records saved per account.';
 }
 
@@ -2763,39 +2796,48 @@ function switchAuthTab(tab) {
 function doRegister() {
   const name  = document.getElementById('regName').value.trim();
   const user  = document.getElementById('regUser').value.trim().toLowerCase();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
   const pass  = document.getElementById('regPass').value;
   const pass2 = document.getElementById('regPass2').value;
   const err   = document.getElementById('registerErr');
-  if (!name || !user || !pass) { showAuthErr(err, 'All fields are required.'); return; }
-  if (user.length < 3) { showAuthErr(err, 'Username must be at least 3 characters.'); return; }
-  if (pass.length < 4) { showAuthErr(err, 'Password must be at least 4 characters.'); return; }
-  if (pass !== pass2)  { showAuthErr(err, 'Passwords do not match.'); return; }
 
-  const btn = document.querySelector('#registerInline .btn-auth') || document.getElementById('registerBtn');
-  if (btn) btn.disabled = true;
+  if (!name || !user || !email || !pass) { showAuthErr(err, 'All fields are required.'); return; }
+  if (user.length < 3)  { showAuthErr(err, 'Username must be at least 3 characters.'); return; }
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { showAuthErr(err, 'Please enter a valid email address.'); return; }
+  if (pass.length < 4)  { showAuthErr(err, 'Password must be at least 4 characters.'); return; }
+  if (pass !== pass2)   { showAuthErr(err, 'Passwords do not match.'); return; }
+
+  const regBtn = document.querySelector('#registerForm .btn-auth');
+  if (regBtn) { regBtn.disabled = true; regBtn.textContent = 'Creating account…'; }
   showAuthErr(err, '');
 
-  const hash = hashPass(pass);
+  const hash     = hashPass(pass);
   const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 
-  gasPost('register', { username: user, name, hash, provider: 'password' })
+  gasPost('register', { username: user, name, email, hash, provider: 'password' })
     .then(function(res) {
-      if (btn) btn.disabled = false;
+      if (regBtn) { regBtn.disabled = false; regBtn.textContent = 'Create Account'; }
       if (!res.ok) { showAuthErr(err, res.error || 'Registration failed.'); return; }
       const u = res.user;
-      document.getElementById('regCandidateId').textContent = u.candidateId || res.candidateId || '';
+      const cid = u.candidateId || res.candidateId || '';
+      document.getElementById('regCandidateId').textContent = cid;
+      document.getElementById('registerInline').style.display = 'block';
       document.getElementById('regSuccess').style.display = 'block';
-      document.getElementById('regName').value = '';
-      document.getElementById('regUser').value = '';
-      document.getElementById('regPass').value = '';
+      // Show email notice below candidate ID
+      var notice = document.getElementById('regEmailNotice');
+      if (notice) { notice.textContent = 'Login details sent to ' + email; notice.style.display = 'block'; }
+      document.getElementById('regName').value  = '';
+      document.getElementById('regUser').value  = '';
+      document.getElementById('regEmail').value = '';
+      document.getElementById('regPass').value  = '';
       document.getElementById('regPass2').value = '';
       currentUser = { username: u.username, name: u.name, initials: u.initials || initials,
-                      candidateId: u.candidateId || '', isAdmin: false };
+                      candidateId: cid, email: email, isAdmin: false };
       _STORE['mca_session'] = currentUser;
-      setTimeout(function() { onLoginSuccess(); }, 2500);
+      setTimeout(function() { onLoginSuccess(); }, 3000);
     })
     .catch(function(e) {
-      if (btn) btn.disabled = false;
+      if (regBtn) { regBtn.disabled = false; regBtn.textContent = 'Create Account'; }
       showAuthErr(err, 'Network error. Please try again.');
       console.error('Register error:', e);
     });
