@@ -243,21 +243,49 @@ function handleGoogleToken(token) {
     });
   })
   .then(function(res) {
-    if (!res.ok) throw new Error(res.error || 'GAS error');
-    var u = res.user;
-    // Attach picture (GAS may not store it)
-    u.picture = googlePicture;
-    // Force isAdmin check — if it's the admin email, always grant admin
-    if (googleEmail && googleEmail === ADMIN_EMAIL.toLowerCase()) {
-      u.isAdmin = true;
+    var u;
+    // Admin email — log in directly without needing GAS to succeed
+    if (googleEmail === ADMIN_EMAIL.toLowerCase()) {
+      u = {
+        username:    'google_' + googleEmail.replace(/[^a-z0-9]/gi, '_'),
+        name:        res.user ? res.user.name : 'Jason Crasto',
+        email:       googleEmail,
+        candidateId: '',
+        initials:    'JC',
+        isAdmin:     true,
+        picture:     googlePicture,
+        provider:    'google'
+      };
+      saveSession(u);
+      go();
+      return;
     }
+    if (!res.ok) throw new Error(res.error || 'Sign-in failed');
+    u = res.user;
+    u.picture = googlePicture;
     saveSession(u);
     go();
   })
   .catch(function(e) {
+    // Last resort — if it's the admin email and GAS failed, log in anyway
+    if (googleEmail === ADMIN_EMAIL.toLowerCase()) {
+      var u = {
+        username:    'google_' + googleEmail.replace(/[^a-z0-9]/gi, '_'),
+        name:        'Jason Crasto',
+        email:       googleEmail,
+        candidateId: '',
+        initials:    'JC',
+        isAdmin:     true,
+        picture:     googlePicture,
+        provider:    'google'
+      };
+      saveSession(u);
+      go();
+      return;
+    }
     window.history.replaceState(null, '', window.location.pathname);
     err.className = 'auth-err';
-    err.textContent = 'Google sign-in failed: ' + (e.message || 'please try again.');
+    err.textContent = 'Google sign-in failed. Please try again.';
   });
 }
 
