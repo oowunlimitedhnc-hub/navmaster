@@ -12,69 +12,44 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:      #0b1120;
-      --card:    #0f1929;
-      --deep:    #080e18;
-      --border:  #1c2d42;
-      --teal:    #2dd4bf;
-      --gold:    #d4a843;
-      --white:   #eef3f7;
-      --text:    #c5d3e0;
-      --muted:   #8a9ab0;
-      --correct: #22c55e;
-      --wrong:   #ef4444;
+      --bg:      #0b1120; --card:  #0f1929; --deep:   #080e18;
+      --border:  #1c2d42; --teal:  #2dd4bf; --gold:   #d4a843;
+      --white:   #eef3f7; --text:  #c5d3e0; --muted:  #8a9ab0;
+      --correct: #22c55e; --wrong: #ef4444;
     }
-    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-
-    .auth-box {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 18px; padding: 2.2rem 2rem; width: 100%; max-width: 400px;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
-    }
-
-    /* Logo */
-    .auth-logo { text-align: center; margin-bottom: 1.8rem; }
-    .auth-logo svg { width: 52px; height: 52px; margin-bottom: 0.6rem; }
-    .auth-logo-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; color: var(--white); letter-spacing: 0.08em; }
-    .auth-logo-sub   { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; margin-top: 0.2rem; }
-
-    /* Tabs */
-    .auth-tabs { display: flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 1.4rem; }
-    .auth-tab  { flex: 1; padding: 0.6rem; background: transparent; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-    .auth-tab.active { background: var(--deep); color: var(--white); }
-
-    /* Fields */
-    .auth-field { margin-bottom: 0.9rem; }
-    .auth-field label { display: block; font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.35rem; }
-    .auth-field input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 9px; padding: 0.65rem 0.85rem; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none; transition: border-color 0.15s; }
-    .auth-field input:focus { border-color: var(--teal); }
-
-    /* Buttons */
-    .btn-auth { width: 100%; padding: 0.75rem; background: linear-gradient(135deg, var(--teal), #0d9488); border: none; border-radius: 10px; color: #0b1120; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 800; cursor: pointer; margin-top: 0.3rem; transition: opacity 0.15s; }
-    .btn-auth:hover { opacity: 0.88; }
-    .btn-auth:disabled { opacity: 0.5; cursor: default; }
-
-    .btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.7rem; background: #fff; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600; color: #1f2937; cursor: pointer; margin-bottom: 0.6rem; transition: opacity 0.15s; }
-    .btn-google:hover { opacity: 0.88; }
-
-    .auth-or { text-align: center; font-size: 0.7rem; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 0.1em; margin: 0.8rem 0; }
-
-    /* Error */
-    .auth-err { font-size: 0.78rem; color: var(--wrong); min-height: 1.2rem; margin-top: 0.5rem; text-align: center; }
-    .auth-err.teal { color: var(--teal); }
-
-    .auth-footer { text-align: center; font-size: 0.7rem; color: var(--muted); margin-top: 1.2rem; line-height: 1.5; }
-
-    /* Success box */
-    .success-box { margin-top: 1rem; background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.3); border-radius: 10px; padding: 1rem; text-align: center; }
-    .success-box .label { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--teal); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.3rem; }
-    .success-box .cid   { font-family: 'DM Mono', monospace; font-size: 1.3rem; font-weight: 700; color: var(--white); letter-spacing: 0.15em; background: rgba(255,255,255,0.06); border-radius: 8px; padding: 0.4rem 1rem; display: inline-block; margin: 0.4rem 0; }
-    .success-box .note  { font-size: 0.72rem; color: var(--teal); }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1rem; }
+    .auth-box { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:2.2rem 2rem; width:100%; max-width:400px; box-shadow:0 24px 64px rgba(0,0,0,0.5); }
+    .auth-logo { text-align:center; margin-bottom:1.8rem; }
+    .auth-logo svg { width:52px; height:52px; margin-bottom:0.6rem; }
+    .auth-logo-title { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:var(--white); letter-spacing:0.08em; }
+    .auth-logo-sub   { font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--gold); letter-spacing:0.18em; text-transform:uppercase; margin-top:0.2rem; }
+    .auth-tabs { display:flex; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:1.4rem; }
+    .auth-tab  { flex:1; padding:0.6rem; background:transparent; border:none; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:600; cursor:pointer; transition:all 0.15s; }
+    .auth-tab.active { background:var(--deep); color:var(--white); }
+    .auth-field { margin-bottom:0.9rem; }
+    .auth-field label { display:block; font-size:0.72rem; color:var(--muted); font-family:'DM Mono',monospace; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.35rem; }
+    .auth-field input { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:9px; padding:0.65rem 0.85rem; color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.88rem; outline:none; transition:border-color 0.15s; }
+    .auth-field input:focus { border-color:var(--teal); }
+    .btn-auth { width:100%; padding:0.75rem; background:linear-gradient(135deg,var(--teal),#0d9488); border:none; border-radius:10px; color:#0b1120; font-family:'DM Sans',sans-serif; font-size:0.9rem; font-weight:800; cursor:pointer; margin-top:0.3rem; transition:opacity 0.15s; }
+    .btn-auth:hover { opacity:0.88; }
+    .btn-auth:disabled { opacity:0.5; cursor:default; }
+    .btn-google { width:100%; display:flex; align-items:center; justify-content:center; gap:0.6rem; padding:0.7rem; background:#fff; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:600; color:#1f2937; cursor:pointer; margin-bottom:0.6rem; transition:opacity 0.15s; }
+    .btn-google:hover { opacity:0.88; }
+    .btn-google:disabled { opacity:0.5; cursor:default; }
+    .auth-or  { text-align:center; font-size:0.7rem; color:var(--muted); font-family:'DM Mono',monospace; letter-spacing:0.1em; margin:0.8rem 0; }
+    .auth-err { font-size:0.78rem; color:var(--wrong); min-height:1.2rem; margin-top:0.5rem; text-align:center; }
+    .auth-err.teal { color:var(--teal); }
+    .auth-footer { text-align:center; font-size:0.7rem; color:var(--muted); margin-top:1.2rem; line-height:1.5; }
+    .success-box { margin-top:1rem; background:rgba(45,212,191,0.08); border:1px solid rgba(45,212,191,0.3); border-radius:10px; padding:1rem; text-align:center; }
+    .success-box .label { font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--teal); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.3rem; }
+    .success-box .cid   { font-family:'DM Mono',monospace; font-size:1.3rem; font-weight:700; color:var(--white); letter-spacing:0.15em; background:rgba(255,255,255,0.06); border-radius:8px; padding:0.4rem 1rem; display:inline-block; margin:0.4rem 0; }
+    .success-box .note  { font-size:0.72rem; color:var(--teal); }
+    .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(0,0,0,0.2); border-top-color:#0b1120; border-radius:50%; animation:spin 0.6s linear infinite; vertical-align:middle; margin-right:6px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
   </style>
 </head>
 <body>
 <div class="auth-box">
-  <!-- Logo -->
   <div class="auth-logo">
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="32" cy="32" r="10" stroke="#D4A843" stroke-width="2.5" fill="none"/>
@@ -101,32 +76,36 @@
     <div class="auth-logo-sub">MCA Assessment · UK</div>
   </div>
 
-  <!-- Tabs -->
   <div class="auth-tabs">
     <button class="auth-tab active" id="tabSignIn"   onclick="showTab('signin')">Sign In</button>
     <button class="auth-tab"        id="tabRegister" onclick="showTab('register')">Register</button>
   </div>
 
-  <!-- ── SIGN IN PANEL ── -->
+  <!-- SIGN IN -->
   <div id="panelSignIn">
-    <button class="btn-google" onclick="triggerGoogleLogin()">
-      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.169 6.656 3.58 9 3.58z"/></svg>
+    <button class="btn-google" id="googleBtn" onclick="triggerGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 18 18">
+        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+        <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/>
+        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.169 6.656 3.58 9 3.58z"/>
+      </svg>
       Continue with Google
     </button>
     <div class="auth-or">OR</div>
     <div class="auth-field">
       <label>Username or Candidate ID</label>
-      <input type="text" id="siUser" placeholder="e.g. jasoncrasto or CM-1234" autocomplete="username">
+      <input type="text" id="siUser" placeholder="Username, email or Candidate ID" autocomplete="username">
     </div>
     <div class="auth-field">
       <label>Password</label>
       <input type="password" id="siPass" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()">
     </div>
-    <button class="btn-auth" onclick="doSignIn()">Sign In</button>
+    <button class="btn-auth" id="signInBtn" onclick="doSignIn()">Sign In</button>
     <div class="auth-err" id="siErr"></div>
   </div>
 
-  <!-- ── REGISTER PANEL ── -->
+  <!-- REGISTER -->
   <div id="panelRegister" style="display:none;">
     <div class="auth-field">
       <label>Full Name</label>
@@ -138,59 +117,36 @@
     </div>
     <div class="auth-field">
       <label>Email Address</label>
-      <div style="font-size:0.7rem;color:var(--teal);margin-bottom:0.35rem;">✉ Your Candidate ID &amp; password will be emailed to you</div>
+      <div style="font-size:0.7rem;color:var(--teal);margin-bottom:0.35rem;">&#9993; Your Candidate ID &amp; password will be emailed to you</div>
       <input type="email" id="regEmail" placeholder="e.g. jason@example.com" autocomplete="email">
     </div>
-    <button class="btn-auth" style="background:linear-gradient(135deg,var(--gold),#b8882e);color:#0b1120;" onclick="doRegister()">Create Account</button>
+    <button class="btn-auth" id="registerBtn" style="background:linear-gradient(135deg,var(--gold),#b8882e);color:#0b1120;" onclick="doRegister()">Create Account</button>
     <div class="auth-err" id="regErr"></div>
     <div id="regSuccessBox" style="display:none;" class="success-box">
-      <div class="label">Account Created ✓</div>
+      <div class="label">Account Created &#10003;</div>
       <div class="cid" id="regCid">CM-0000</div>
       <div class="note" id="regNote"></div>
       <div style="font-size:0.72rem;color:var(--muted);margin-top:0.6rem;line-height:1.5;">Check your email for your password,<br>then <a href="#" onclick="showTab('signin');return false;" style="color:var(--teal);text-decoration:underline;">Sign In</a> using your Candidate ID.</div>
     </div>
   </div>
 
-  <div class="auth-footer">NAVMASTER · MCA Assessment Platform · South Shields Marine School</div>
+  <div class="auth-footer">NAVMASTER &middot; MCA Assessment Platform &middot; South Shields Marine School</div>
 </div>
 
 <script>
-/* ══════════════════════════════════════════
+/* ═══════════════════════════════
    CONFIG
-══════════════════════════════════════════ */
-var GAS_URL         = 'https://script.google.com/macros/s/AKfycbwwJRWnvQuSNjI-JLzZg5LX5IdNT8ABhmaXPsjy4NuAzKvYUwAOQxvRV6Kn5s7VPVtR/exec';
+═══════════════════════════════ */
+var GAS_URL          = 'https://script.google.com/macros/s/AKfycbwwJRWnvQuSNjI-JLzZg5LX5IdNT8ABhmaXPsjy4NuAzKvYUwAOQxvRV6Kn5s7VPVtR/exec';
 var GOOGLE_CLIENT_ID = '27579080548-rlk6j8p0gomhaf59rqq513mjaio92o64.apps.googleusercontent.com';
-var ADMIN_EMAIL     = 'backitup.crst2@gmail.com';
-var QUIZ_URL        = 'quiz.html';
+var ADMIN_EMAIL      = 'backitup.crst2@gmail.com';
+var QUIZ_URL         = 'quiz.html';
 
-/* ══════════════════════════════════════════
-   INIT — if already logged in, skip to quiz
-══════════════════════════════════════════ */
-(function init() {
-  // Handle Google OAuth redirect back
-  if (window.location.hash && window.location.hash.indexOf('access_token') !== -1) {
-    var params = new URLSearchParams(window.location.hash.slice(1));
-    var token  = params.get('access_token');
-    if (token) { handleGoogleToken(token); return; }
-  }
-  // Already logged in with a real account? Skip to quiz
-  try {
-    var s = localStorage.getItem('mca_session');
-    if (s) {
-      var u = JSON.parse(s);
-      // Only skip login if it's a real registered user (not guest)
-      if (u && u.username && u.username !== 'guest') { go(); return; }
-      // Otherwise clear stale/guest session
-      localStorage.removeItem('mca_session');
-    }
-  } catch(_) {}
-})();
-
+/* ═══════════════════════════════
+   HELPERS
+═══════════════════════════════ */
 function go() { window.location.replace(QUIZ_URL); }
 
-/* ══════════════════════════════════════════
-   TABS
-══════════════════════════════════════════ */
 function showTab(tab) {
   document.getElementById('panelSignIn').style.display   = tab === 'signin'   ? '' : 'none';
   document.getElementById('panelRegister').style.display = tab === 'register' ? '' : 'none';
@@ -200,9 +156,6 @@ function showTab(tab) {
   document.getElementById('regErr').textContent = '';
 }
 
-/* ══════════════════════════════════════════
-   API
-══════════════════════════════════════════ */
 function gasPost(action, data) {
   return fetch(GAS_URL, {
     method: 'POST',
@@ -211,11 +164,8 @@ function gasPost(action, data) {
   }).then(function(r) { return r.json(); });
 }
 
-/* ══════════════════════════════════════════
-   HASH
-══════════════════════════════════════════ */
 function hashPass(pass) {
-  var str  = pass + 'mca_salt_2025';
+  var str = pass + 'mca_salt_2025';
   var hash = 0x811c9dc5;
   for (var i = 0; i < str.length; i++) {
     hash ^= str.charCodeAt(i);
@@ -231,19 +181,98 @@ function hashPass(pass) {
   return parts.join('');
 }
 
-/* ══════════════════════════════════════════
-   SIGN IN
-══════════════════════════════════════════ */
+function saveSession(u) {
+  var session = {
+    username:    u.username    || '',
+    name:        u.name        || '',
+    email:       u.email       || '',
+    initials:    u.initials    || (u.name || 'U').split(' ').map(function(w){ return w[0] || ''; }).join('').toUpperCase().slice(0, 2) || 'U',
+    candidateId: u.candidateId || '',
+    isAdmin:     u.isAdmin     || false,
+    picture:     u.picture     || '',
+    provider:    u.provider    || 'password'
+  };
+  try { localStorage.setItem('mca_session', JSON.stringify(session)); } catch(_) {}
+}
+
+/* ═══════════════════════════════
+   GOOGLE SIGN IN
+═══════════════════════════════ */
+function triggerGoogleLogin() {
+  var btn = document.getElementById('googleBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Connecting to Google…';
+  var redirect = window.location.origin + window.location.pathname;
+  var url = 'https://accounts.google.com/o/oauth2/v2/auth'
+    + '?client_id='     + encodeURIComponent(GOOGLE_CLIENT_ID)
+    + '&redirect_uri='  + encodeURIComponent(redirect)
+    + '&response_type=token'
+    + '&scope='         + encodeURIComponent('openid email profile')
+    + '&prompt=select_account';
+  window.location.href = url;
+}
+
+function handleGoogleToken(token) {
+  // Show loading state
+  var err = document.getElementById('siErr');
+  err.className = 'auth-err teal';
+  err.textContent = 'Verifying Google account…';
+
+  var googleEmail = '';
+  var googlePicture = '';
+
+  fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('userinfo failed');
+    return r.json();
+  })
+  .then(function(info) {
+    googleEmail   = (info.email   || '').toLowerCase();
+    googlePicture = info.picture  || '';
+    var name      = info.name     || googleEmail.split('@')[0] || 'User';
+    var username  = 'google_' + googleEmail.replace(/[^a-z0-9]/gi, '_');
+    err.textContent = 'Signing in…';
+    return gasPost('register', {
+      username: username,
+      name:     name,
+      email:    googleEmail,
+      picture:  googlePicture,
+      provider: 'google'
+    });
+  })
+  .then(function(res) {
+    if (!res.ok) throw new Error(res.error || 'GAS error');
+    var u = res.user;
+    // Attach picture (GAS may not store it)
+    u.picture = googlePicture;
+    // Force isAdmin check — if it's the admin email, always grant admin
+    if (googleEmail && googleEmail === ADMIN_EMAIL.toLowerCase()) {
+      u.isAdmin = true;
+    }
+    saveSession(u);
+    go();
+  })
+  .catch(function(e) {
+    window.history.replaceState(null, '', window.location.pathname);
+    err.className = 'auth-err';
+    err.textContent = 'Google sign-in failed: ' + (e.message || 'please try again.');
+  });
+}
+
+/* ═══════════════════════════════
+   SIGN IN (password)
+═══════════════════════════════ */
 function doSignIn() {
   var user = (document.getElementById('siUser').value || '').trim();
   var pass = (document.getElementById('siPass').value || '').trim();
   var err  = document.getElementById('siErr');
+  var btn  = document.getElementById('signInBtn');
+  err.className = 'auth-err';
   err.textContent = '';
   if (!user || !pass) { err.textContent = 'Please enter your username/ID and password.'; return; }
-
-  var btn = document.querySelector('#panelSignIn .btn-auth');
   btn.disabled = true; btn.textContent = 'Signing in…';
-
   gasPost('login', { username: user, hash: hashPass(pass), provider: 'password' })
     .then(function(res) {
       btn.disabled = false; btn.textContent = 'Sign In';
@@ -257,38 +286,31 @@ function doSignIn() {
     });
 }
 
-/* ══════════════════════════════════════════
+/* ═══════════════════════════════
    REGISTER
-══════════════════════════════════════════ */
+═══════════════════════════════ */
 function doRegister() {
   var name  = (document.getElementById('regName').value  || '').trim();
   var user  = (document.getElementById('regUser').value  || '').trim().toLowerCase();
   var email = (document.getElementById('regEmail').value || '').trim().toLowerCase();
   var err   = document.getElementById('regErr');
+  var btn   = document.getElementById('registerBtn');
   err.textContent = '';
-
   if (!name)  { err.textContent = 'Full name is required.'; return; }
-  if (!user)  { err.textContent = 'Username is required.'; return; }
-  if (!email) { err.textContent = 'Email address is required.'; return; }
-  if (user.length < 3) { err.textContent = 'Username must be at least 3 characters.'; return; }
-  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { err.textContent = 'Please enter a valid email.'; return; }
-
-  var btn = document.querySelector('#panelRegister .btn-auth');
+  if (!user || user.length < 3) { err.textContent = 'Username must be at least 3 characters.'; return; }
+  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { err.textContent = 'Please enter a valid email.'; return; }
   btn.disabled = true; btn.textContent = 'Creating account…';
-
   gasPost('register', { username: user, name: name, email: email, hash: '', provider: 'password' })
     .then(function(res) {
       btn.disabled = false; btn.textContent = 'Create Account';
       if (!res.ok) { err.textContent = res.error || 'Registration failed.'; return; }
-      var u   = res.user;
-      var cid = u.candidateId || '';
+      var cid = res.user.candidateId || '';
       document.getElementById('regCid').textContent  = cid || '—';
-      document.getElementById('regNote').textContent = '✉ Login details sent to ' + email;
+      document.getElementById('regNote').textContent = '&#9993; Login details sent to ' + email;
       document.getElementById('regSuccessBox').style.display = '';
       document.getElementById('regName').value  = '';
       document.getElementById('regUser').value  = '';
       document.getElementById('regEmail').value = '';
-      // Do NOT auto-redirect — candidate must login manually using emailed credentials
     })
     .catch(function() {
       btn.disabled = false; btn.textContent = 'Create Account';
@@ -296,57 +318,33 @@ function doRegister() {
     });
 }
 
-/* ══════════════════════════════════════════
-   GOOGLE SIGN IN
-══════════════════════════════════════════ */
-function triggerGoogleLogin() {
-  var redirect = window.location.href.split('#')[0].split('?')[0];
-  var url = 'https://accounts.google.com/o/oauth2/v2/auth'
-    + '?client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID)
-    + '&redirect_uri=' + encodeURIComponent(redirect)
-    + '&response_type=token'
-    + '&scope=' + encodeURIComponent('openid email profile')
-    + '&prompt=select_account';
-  window.location.href = url;
-}
-
-function handleGoogleToken(token) {
-  fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { 'Authorization': 'Bearer ' + token }
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(info) {
-    var email    = info.email || '';
-    var name     = info.name  || email.split('@')[0] || 'User';
-    var picture  = info.picture || '';
-    var username = 'google_' + email.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    return gasPost('register', { username: username, name: name, email: email, picture: picture, provider: 'google' });
-  })
-  .then(function(res) {
-    if (res.ok) { saveSession(res.user); go(); }
-    else { window.location.hash = ''; document.getElementById('siErr').textContent = 'Google sign-in failed. Try again.'; }
-  })
-  .catch(function() {
-    window.location.hash = '';
-    document.getElementById('siErr').textContent = 'Google sign-in error. Try again.';
-  });
-}
-
-/* ══════════════════════════════════════════
-   SESSION
-══════════════════════════════════════════ */
-function saveSession(u) {
-  var session = {
-    username:    u.username,
-    name:        u.name,
-    email:       u.email       || '',
-    initials:    u.initials    || (u.name || 'U').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2),
-    candidateId: u.candidateId || '',
-    isAdmin:     u.isAdmin     || false,
-    picture:     u.picture     || ''
-  };
-  try { localStorage.setItem('mca_session', JSON.stringify(session)); } catch(_) {}
-}
+/* ═══════════════════════════════
+   INIT — runs last, after all
+   functions are defined
+═══════════════════════════════ */
+(function init() {
+  // Handle Google OAuth token in URL hash
+  var hash = window.location.hash;
+  if (hash && hash.indexOf('access_token') !== -1) {
+    var params = new URLSearchParams(hash.slice(1));
+    var token  = params.get('access_token');
+    // Clean the hash from URL immediately
+    window.history.replaceState(null, '', window.location.pathname);
+    if (token) {
+      handleGoogleToken(token);
+      return;
+    }
+  }
+  // Already logged in? Skip to quiz
+  try {
+    var s = localStorage.getItem('mca_session');
+    if (s) {
+      var u = JSON.parse(s);
+      if (u && u.username && u.username !== 'guest') { go(); return; }
+      localStorage.removeItem('mca_session');
+    }
+  } catch(_) {}
+})();
 </script>
 </body>
 </html>
