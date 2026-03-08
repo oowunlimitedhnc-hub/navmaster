@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NAVMASTER Quiz — MCA Assessment</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>NAVMASTER - MCA Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --navy: #0b1120; --deep: #0f1929; --card: #131e2e; --border: #1c2d42;
@@ -999,22 +1000,33 @@
   .challenge-status-badge.accepted { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
   .challenge-status-badge.rejected { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
 </style>
+
+  .challenge-btn { display:inline-flex;align-items:center;gap:0.4rem;margin-top:0.9rem;padding:0.45rem 1rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#f87171;font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.15s; }
+  .challenge-btn:hover { background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.5); }
+  .challenge-btn.submitted { background:rgba(45,212,191,0.08);border-color:rgba(45,212,191,0.3);color:var(--teal);cursor:default; }
+  .challenge-option-row { display:flex;flex-direction:column;gap:0.5rem;margin:0.8rem 0; }
+  .challenge-opt { display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.8rem;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.02);cursor:pointer;transition:all 0.15s;font-size:0.82rem;color:var(--text); }
+  .challenge-opt:hover { border-color:var(--gold);background:rgba(212,168,67,0.05); }
+  .challenge-opt.selected { border-color:var(--gold);background:rgba(212,168,67,0.1);color:var(--white); }
+  .challenge-opt input[type=checkbox] { accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;pointer-events:none; }
+  .challenge-card { background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:0.8rem; }
+  .challenge-card.resolved { opacity:0.55; }
+  .challenge-meta { font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:0.5rem; }
+  .challenge-q { font-size:0.85rem;color:var(--white);font-weight:600;margin-bottom:0.6rem;line-height:1.4; }
+  .challenge-reason { font-size:0.78rem;color:var(--text);background:rgba(255,255,255,0.03);border-left:2px solid var(--gold);padding:0.4rem 0.7rem;border-radius:0 6px 6px 0;margin-bottom:0.7rem; }
+  .challenge-opts-list { font-size:0.75rem;color:var(--muted);margin-bottom:0.8rem; }
+  .challenge-opts-list span { display:inline-block;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:5px;padding:0.2rem 0.5rem;margin:0.15rem; }
+  .challenge-opts-list span.disputed { border-color:rgba(239,68,68,0.4);color:#f87171;background:rgba(239,68,68,0.06); }
+  .challenge-acts { display:flex;gap:0.5rem;flex-wrap:wrap; }
+  .challenge-status-badge { display:inline-block;font-size:0.6rem;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;padding:0.15rem 0.5rem;border-radius:4px;margin-left:0.5rem; }
+  .challenge-status-badge.pending  { background:rgba(212,168,67,0.15);color:var(--gold);border:1px solid rgba(212,168,67,0.3); }
+  .challenge-status-badge.accepted { background:rgba(45,212,191,0.12);color:var(--teal);border:1px solid rgba(45,212,191,0.3); }
+  .challenge-status-badge.rejected { background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.3); }
+
 </head>
 <body>
 
 <!-- AUTH GATE -->
-<!-- Auth gate not used on quiz.html — session checked via localStorage, redirects to login.html if missing -->
-<div id="authGate" class="hidden" style="display:none;">
-  <div id="loginForm" style="display:none;"></div>
-  <div id="registerInline" style="display:none;"><div id="regSuccess" style="display:none;"></div></div>
-  <div id="adminForm" style="display:none;visibility:hidden;">
-    <div id="adminLoginFields" style="display:none;"></div>
-    <div id="adminLoggedIn" style="display:none;"></div>
-  </div>
-  <div id="authFooterText" style="display:none;"></div>
-  <div id="driveNotice" style="display:none;"></div>
-  <button id="guestBtn" style="display:none;"></button>
-</div>
 
 <!-- ══ MODAL: ADMIN PANEL ══ -->
 <div class="overlay" id="adminM" onclick="overlayClick(event,'adminM')">
@@ -1032,6 +1044,7 @@
         <button class="admin-tab" id="atab-records" onclick="switchAdminTab('records')">All User Records</button>
         <button class="admin-tab" id="atab-users" onclick="switchAdminTab('users')">Users</button>
         <button class="admin-tab" id="atab-questions" onclick="switchAdminTab('questions')">Edit Questions</button>
+        <button class="admin-tab" id="atab-challenges" onclick="switchAdminTab('challenges')">Challenges <span class="admin-badge" id="challengeBadge" style="background:rgba(239,68,68,0.2);color:#f87171;border-color:rgba(239,68,68,0.3);">0</span></button>
         <button class="admin-tab" id="atab-challenges" onclick="switchAdminTab('challenges')">Challenges <span class="admin-badge" id="challengeBadge" style="background:rgba(239,68,68,0.2);color:#f87171;border-color:rgba(239,68,68,0.3);">0</span></button>
       </div>
 
@@ -1051,6 +1064,11 @@
         <div id="adminUsersList"></div>
       </div>
 
+      <!-- CHALLENGES PANEL -->
+      <div class="admin-panel" id="apanel-challenges">
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;">Review and resolve candidate question challenges below.</div>
+        <div id="adminChallengesList"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div></div>
+      </div>
       <!-- EDIT QUESTIONS PANEL -->
       <div class="admin-panel" id="apanel-questions">
         <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;">
@@ -1540,7 +1558,6 @@ function storeList(prefix, shared=false) { return Promise.resolve(_storeList(pre
    All data (users, records, scripts) lives in Google Sheets.
    Local _STORE is still used for exams/questions in-session.
 ════════════════════════════════════════════════════════════ */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwwJRWnvQuSNjI-JLzZg5LX5IdNT8ABhmaXPsjy4NuAzKvYUwAOQxvRV6Kn5s7VPVtR/exec';
 
 function gasPost(action, data) {
   return fetch(GAS_URL, {
@@ -1645,6 +1662,298 @@ resetState();
 
 /* ══════ RENDER ══════ */
 function render() {
+
+<!-- CHALLENGE MODAL -->
+<div class="overlay" id="challengeM" onclick="overlayClick(event,'challengeM')">
+  <div class="modal">
+    <div class="m-head">
+      <div class="m-head-txt"><h2 style="color:#f87171;">Challenge Question</h2><p>RAISE A DISCREPANCY</p></div>
+      <button class="m-x" onclick="closeM('challengeM')">X</button>
+    </div>
+    <div class="m-body">
+      <div id="challengeQText" style="font-size:0.88rem;color:var(--white);font-weight:600;margin-bottom:1rem;line-height:1.5;padding:0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--gold);"></div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;">Select the answer(s) you believe are correct:</div>
+      <div class="challenge-option-row" id="challengeOptsList"></div>
+      <div style="margin-top:1rem;">
+        <label style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Your reason</label>
+        <textarea id="challengeReason" placeholder="Explain why you believe the marked answer is incorrect..." style="width:100%;min-height:80px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.7rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+      <div class="auth-err" id="challengeErr" style="margin-top:0.5rem;"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn-ghost-sm" onclick="closeM('challengeM')">Cancel</button>
+      <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;padding:0.55rem 1.4rem;font-size:0.82rem;" onclick="submitChallenge()">Submit Challenge</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====================================================
+   NAVMASTER CONFIG
+==================================================== */
+var GAS_URL          = 'https://script.google.com/macros/s/AKfycbwwJRWnvQuSNjI-JLzZg5LX5IdNT8ABhmaXPsjy4NuAzKvYUwAOQxvRV6Kn5s7VPVtR/exec';
+var GOOGLE_CLIENT_ID = '27579080548-rlk6j8p0gomhaf59rqq513mjaio92o64.apps.googleusercontent.com';
+var ADMIN_EMAIL      = 'backitup.crst2@gmail.com';
+var ADMIN_PASSWORD   = 'JasCra@2328';
+
+/* ====================================================
+   API
+==================================================== */
+
+
+/* ====================================================
+   SESSION + AUTH
+==================================================== */
+var currentUser   = null;
+var adminUnlocked = false;
+
+function initAuth() {
+  try {
+    var raw = localStorage.getItem('mca_session');
+    if (raw) {
+      var u = JSON.parse(raw);
+      if (u && u.username) { currentUser = u; onLoginSuccess(); return; }
+    }
+  } catch(_) {}
+  window.location.replace('login.html');
+}
+
+function doLogout() {
+  currentUser = null; adminUnlocked = false;
+  try { localStorage.removeItem('mca_session'); } catch(_) {}
+  window.location.replace('login.html');
+}
+
+function onLoginSuccess() {
+  try { localStorage.setItem('mca_session', JSON.stringify(currentUser)); } catch(_) {}
+  var chip   = document.getElementById('userChip');
+  var chipAv = document.getElementById('userChipAv');
+  var chipNm = document.getElementById('userChipName');
+  var chipId = document.getElementById('userChipId');
+  var dropAv = document.getElementById('userDropAv');
+  var dropNm = document.getElementById('userDropName');
+  var dropId = document.getElementById('userDropId');
+  if (chip) chip.classList.remove('user-chip-admin','user-chip-google');
+
+  var adminPanel  = document.getElementById('adminMainPanel');
+  var adminLogin  = document.getElementById('adminMainLogin');
+  var adminLogged = document.getElementById('adminMainLogged');
+
+  if (currentUser.isAdmin) {
+    adminUnlocked = true;
+    if (chipAv) chipAv.textContent = 'JC';
+    if (chipNm) chipNm.textContent = 'Admin';
+    if (chipId) chipId.style.display = 'none';
+    if (chip)   chip.classList.add('user-chip-admin');
+    if (dropAv) dropAv.textContent = 'JC';
+    if (dropNm) dropNm.textContent = 'Jason Crasto';
+    if (dropId) dropId.textContent = 'Administrator';
+    var addQ   = document.getElementById('addQBtn');
+    var script = document.getElementById('scriptInputBtn');
+    if (addQ)   addQ.style.display   = '';
+    if (script) script.style.display = '';
+    if (adminPanel)  adminPanel.style.display  = 'block';
+    if (adminLogin)  adminLogin.style.display  = 'none';
+    if (adminLogged) adminLogged.style.display = 'block';
+  } else if (currentUser.picture) {
+    if (chipAv) chipAv.innerHTML = '<img src="' + currentUser.picture + '" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+    if (chipNm) chipNm.textContent = currentUser.name.split(' ')[0];
+    if (chipId) chipId.style.display = 'none';
+    if (chip)   chip.classList.add('user-chip-google');
+    if (dropAv) dropAv.textContent = currentUser.initials || 'G';
+    if (dropNm) dropNm.textContent = currentUser.name;
+    if (dropId) dropId.textContent = currentUser.email || '';
+    if (adminPanel) adminPanel.style.display = 'none';
+  } else {
+    var ini = currentUser.initials || (currentUser.name||'U').split(' ').map(function(w){ return w[0]||''; }).join('').toUpperCase().slice(0,2);
+    if (chipAv) chipAv.textContent = ini;
+    if (chipNm) chipNm.textContent = currentUser.name.split(' ')[0];
+    if (currentUser.candidateId) {
+      if (chipId) { chipId.textContent = currentUser.candidateId; chipId.style.display = 'block'; }
+    } else { if (chipId) chipId.style.display = 'none'; }
+    if (dropAv) dropAv.textContent = ini;
+    if (dropNm) dropNm.textContent = currentUser.name;
+    if (dropId) dropId.textContent = currentUser.candidateId || ('@' + currentUser.username);
+    if (adminPanel) adminPanel.style.display = 'none';
+  }
+  render();
+}
+
+function showAuthErr(el, msg) {
+  if (!el) return;
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 5000);
+}
+
+function switchAuthTab() {}
+
+function doAdminMainLogin() {
+  var email = ((document.getElementById('adminMainEmail')||{}).value||'').trim().toLowerCase();
+  var pass  = ((document.getElementById('adminMainPass') ||{}).value||'');
+  var err   = document.getElementById('adminMainErr');
+  if (!email || !pass) { showAuthErr(err,'Enter email and password.'); return; }
+  if (email !== ADMIN_EMAIL.toLowerCase()) { showAuthErr(err,'Admin account not recognised.'); return; }
+  if (pass  !== ADMIN_PASSWORD) { showAuthErr(err,'Incorrect password.'); return; }
+  currentUser = { username:'admin', name:'Jason Crasto', email:ADMIN_EMAIL, initials:'JC', isAdmin:true };
+  try { localStorage.setItem('mca_session', JSON.stringify(currentUser)); } catch(_) {}
+  onLoginSuccess();
+}
+
+/* ====================================================
+   GAS-BACKED DATA FUNCTIONS
+==================================================== */
+function hashPass(pass) {
+  var str = pass + 'mca_salt_2025', hash = 0x811c9dc5;
+  for (var i=0;i<str.length;i++){ hash^=str.charCodeAt(i); hash=(hash*0x01000193)>>>0; }
+  var parts=[],h=hash;
+  for(var r=0;r<8;r++){ h=((h^(h>>>16))*0x45d9f3b)>>>0; h=((h^(h>>>16))*0x85ebca6b)>>>0; h=(h^(h>>>13))>>>0; parts.push(h.toString(16).padStart(8,'0')); }
+  return parts.join('');
+}
+
+async function saveRecord() {
+  if (!currentUser) return;
+  var right=scores.filter(Boolean).length, total=questions.length, pct=Math.round(right/total*100);
+  var btn=document.getElementById('saveRecordBtn');
+  if(btn){btn.disabled=true;btn.textContent='Saving...';}
+  try {
+    var res=await gasPost('saveRecord',{username:currentUser.username,name:currentUser.name,exam:activeExamName||'Quick Quiz',score:right,total:total,pct:pct});
+    if(res.ok&&btn){btn.textContent='Saved!';btn.style.background='linear-gradient(135deg,var(--correct),#16a34a)';setTimeout(function(){btn.disabled=false;btn.textContent='Save Record';btn.style.background='linear-gradient(135deg,var(--gold),#b8882e)';openExams();},1200);}
+    else if(btn){btn.disabled=false;btn.textContent='Save Record';}
+  } catch(e){if(btn){btn.disabled=false;btn.textContent='Save Record';}}
+}
+
+async function renderRecords() {
+  var body=document.getElementById('recordsBody');
+  if(!body)return;
+  body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div>';
+  try {
+    var res=await gasGet('getRecords',{username:currentUser.username});
+    var records=(res.ok&&res.records)?res.records:[];
+    if(!records.length){body.innerHTML='<div class="records-empty"><span style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.3;">-</span>No records yet. Complete a quiz and click <b style="color:var(--gold)">Save Record</b>.</div>';return;}
+    var avg=Math.round(records.reduce(function(s,r){return s+Number(r.pct);},0)/records.length);
+    var best=Math.max.apply(null,records.map(function(r){return Number(r.pct);}));
+    body.innerHTML='<div class="records-summary"><div class="summary-stat"><div class="summary-val">'+records.length+'</div><div class="summary-lbl">Attempts</div></div><div class="summary-stat"><div class="summary-val">'+avg+'%</div><div class="summary-lbl">Avg Score</div></div><div class="summary-stat"><div class="summary-val">'+best+'%</div><div class="summary-lbl">Best</div></div></div>'
+      +records.map(function(r){var pct=Number(r.pct);var cls=pct>=80?'pass':pct>=60?'mid':'fail';var col=pct>=80?'var(--correct)':pct>=60?'var(--gold)':'var(--wrong)';return '<div class="record-item"><div class="record-row1"><div class="record-exam">'+r.exam+'</div><span class="record-score-badge '+cls+'">'+pct+'%</span></div><div class="record-row2"><div class="record-meta"><b>'+r.score+'/'+r.total+'</b> correct</div><div class="record-meta">'+r.date+' . '+r.time+'</div><div class="record-meta">'+r.verdict+'</div></div><div class="record-bar"><div class="record-bar-fill" style="width:'+pct+'%;background:'+col+';"></div></div></div>';}).join('');
+  }catch(e){body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load records.</div>';}
+}
+
+async function confirmClearRecords() { await renderRecords(); }
+
+async function saveScriptToStore(name,category,questionsArr,importedBy) {
+  try{var res=await gasPost('saveScript',{name:name,category:category,questionCount:questionsArr.length,questions:questionsArr,createdBy:importedBy||(currentUser?currentUser.username:'admin')});return res.ok?res.id:null;}catch(e){return null;}
+}
+
+async function renderScriptStore() {
+  var list=document.getElementById('scriptStoreList'),badge=document.getElementById('scriptStoreBadge');
+  if(!list)return;
+  list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div>';
+  try {
+    var res=await gasGet('getScripts',{});var scripts=(res.ok&&res.scripts)?res.scripts:[];
+    if(badge)badge.textContent=scripts.length;
+    if(!scripts.length){list.innerHTML='<div style="text-align:center;padding:3rem;color:var(--muted);">No scripts saved yet. Use Script Input to import question sets.</div>';return;}
+    window._adminScripts=scripts;
+    list.innerHTML=scripts.map(function(s,i){var d=s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'';return '<div class="script-store-item"><div class="script-store-row1"><div class="script-store-name">'+s.name+'</div><span class="script-store-cat '+s.category+'">'+(s.category==='navigation'?'Navigation':'Stability')+'</span></div><div class="script-store-meta"><span><b>'+s.questionCount+'</b> questions</span><span>By <b>'+(s.createdBy||'admin')+'</b></span><span>'+d+'</span></div><div class="script-store-acts"><button class="btn-load" onclick="loadScriptFromStore('+i+')">Load into Quiz</button><button class="btn-ghost-sm" style="font-size:0.7rem;padding:0.3rem 0.7rem;" onclick="deleteScriptFromStore(''+s.id+'')">Delete</button></div></div>';}).join('');
+  }catch(e){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load scripts.</div>';}
+}
+
+async function deleteScriptFromStore(id) { try{await gasPost('deleteScript',{id:id});}catch(e){} await renderScriptStore(); }
+
+async function renderAdminRecords() {
+  var sEl=document.getElementById('adminRecordStats'),lEl=document.getElementById('adminRecordsList');
+  if(!sEl||!lEl)return;
+  sEl.innerHTML=lEl.innerHTML='<div style="color:var(--muted);font-size:0.8rem;">Loading...</div>';
+  try {
+    var res=await gasGet('adminStats',{});if(!res.ok){lEl.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load.</div>';return;}
+    var s=res.stats||{},records=res.records||[];
+    sEl.innerHTML='<div class="admin-stat"><div class="admin-stat-val">'+(s.totalAttempts||0)+'</div><div class="admin-stat-lbl">Attempts</div></div><div class="admin-stat"><div class="admin-stat-val">'+(s.avgScore||0)+'%</div><div class="admin-stat-lbl">Avg Score</div></div><div class="admin-stat"><div class="admin-stat-val">'+(s.bestScore||0)+'%</div><div class="admin-stat-lbl">Best Score</div></div><div class="admin-stat"><div class="admin-stat-val">'+(s.passRate||0)+'%</div><div class="admin-stat-lbl">Pass Rate</div></div>';
+    if(!records.length){lEl.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">No records yet.</div>';return;}
+    lEl.innerHTML='<table class="admin-users-table"><thead><tr><th>User</th><th>Exam</th><th>Score</th><th>Date</th><th>Verdict</th></tr></thead><tbody>'+records.map(function(r){var pct=Number(r.pct);var cls=pct>=80?'pass':pct>=60?'mid':'fail';return '<tr><td>'+(r.name||r.username)+'</td><td>'+r.exam+'</td><td class="score-cell '+cls+'">'+pct+'% ('+r.score+'/'+r.total+')</td><td style="font-size:0.75rem;">'+r.date+' '+r.time+'</td><td style="color:var(--muted);font-size:0.75rem;">'+r.verdict+'</td></tr>';}).join('')+'</tbody></table>';
+  }catch(e){lEl.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Error.</div>';}
+}
+
+async function renderAdminUsers() {
+  var el=document.getElementById('adminUsersList');if(!el)return;
+  el.innerHTML='<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:1rem;">Loading...</div>';
+  try {
+    var res=await gasGet('adminStats',{});var users=(res.ok&&res.users)?res.users:[];var uSum=(res.ok&&res.userSummary)?res.userSummary:{};
+    if(!users.length){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">No users yet.</div>';return;}
+    el.innerHTML='<table class="admin-users-table"><thead><tr><th>Name</th><th>Email</th><th>Provider</th><th>Attempts</th><th>Best</th><th>Joined</th></tr></thead><tbody>'+users.map(function(u){var sum=uSum[u.username]||{attempts:0,best:0};var j=u.created?new Date(u.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'-';return '<tr><td style="font-weight:600;color:var(--white);">'+u.name+'</td><td style="font-size:0.72rem;color:var(--muted);">'+(u.email||'@'+u.username)+'</td><td>'+(u.provider||'password')+'</td><td>'+sum.attempts+'</td><td style="color:var(--gold);">'+(sum.best?sum.best+'%':'-')+'</td><td style="font-size:0.72rem;color:var(--muted);">'+j+'</td></tr>';}).join('')+'</tbody></table>';
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Error.</div>';}
+}
+
+/* ====================================================
+   CHALLENGE SYSTEM
+==================================================== */
+window._myChallenges = {};
+var _challengeQi = null;
+
+function openChallenge(qi) {
+  if (!currentUser) return;
+  _challengeQi = qi;
+  var q = questions[qi];
+  document.getElementById('challengeQText').textContent = (qi+1) + '. ' + q.title;
+  var sel = selected[qi] || new Set();
+  document.getElementById('challengeOptsList').innerHTML = q.options.map(function(o,oi) {
+    var chk = sel.has(oi);
+    return '<label class="challenge-opt'+(chk?' selected':'')+'" onclick="toggleChallengeOpt(this)">'
+      +'<input type="checkbox" value="'+oi+'"'+(chk?' checked':'')+'>'
+      +'<span>'+o.text+'</span>'
+      +(o.isCorrect?'<span style="margin-left:auto;font-size:0.65rem;color:var(--muted);flex-shrink:0;">[marked correct]</span>':'')
+      +'</label>';
+  }).join('');
+  document.getElementById('challengeReason').value='';
+  document.getElementById('challengeErr').textContent='';
+  openM('challengeM');
+}
+
+function toggleChallengeOpt(el) {
+  el.classList.toggle('selected');
+  var cb=el.querySelector('input[type=checkbox]');
+  if(cb)cb.checked=!cb.checked;
+}
+
+async function submitChallenge() {
+  if(_challengeQi===null||!currentUser)return;
+  var reason=document.getElementById('challengeReason').value.trim();
+  var errEl=document.getElementById('challengeErr');
+  var checked=Array.from(document.querySelectorAll('#challengeOptsList input[type=checkbox]:checked')).map(function(cb){return Number(cb.value);});
+  if(!reason){errEl.textContent='Please explain your reason.';return;}
+  if(!checked.length){errEl.textContent='Please select the answer(s) you believe are correct.';return;}
+  var btn=document.querySelector('#challengeM .btn-auth');
+  if(btn){btn.disabled=true;btn.textContent='Submitting...';}
+  errEl.textContent='';
+  var qi=_challengeQi,q=questions[qi];
+  try {
+    var res=await gasPost('saveChallenge',{username:currentUser.username,candidateName:currentUser.name,candidateId:currentUser.candidateId||'',exam:activeExamName||'Unknown',questionIndex:qi,questionText:q.title,currentAnswers:q.options.filter(function(o){return o.isCorrect;}).map(function(o){return o.text;}),disputedAnswers:checked.map(function(oi){return q.options[oi].text;}),reason:reason});
+    if(btn){btn.disabled=false;btn.textContent='Submit Challenge';}
+    if(res.ok){window._myChallenges[qi]=true;closeM('challengeM');render();}
+    else{errEl.textContent=res.error||'Could not submit. Try again.';}
+  }catch(e){if(btn){btn.disabled=false;btn.textContent='Submit Challenge';}errEl.textContent='Network error.';}
+}
+
+async function renderAdminChallenges() {
+  var el=document.getElementById('adminChallengesList'),badge=document.getElementById('challengeBadge');
+  if(!el)return;
+  el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div>';
+  try {
+    var res=await gasGet('getChallenges',{});var list=(res.ok&&res.challenges)?res.challenges:[];
+    var pending=list.filter(function(c){return c.status==='pending';}).length;
+    if(badge)badge.textContent=pending;
+    if(!list.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--muted);">No challenges yet.</div>';return;}
+    el.innerHTML=list.map(function(c){
+      var resolved=c.status!=='pending';
+      var cur=typeof c.currentAnswers==='string'?JSON.parse(c.currentAnswers||'[]'):(c.currentAnswers||[]);
+      var disp=typeof c.disputedAnswers==='string'?JSON.parse(c.disputedAnswers||'[]'):(c.disputedAnswers||[]);
+      return '<div class="challenge-card'+(resolved?' resolved':'')+'"><div class="challenge-meta">#'+c.id+' &middot; <strong style="color:var(--white);">'+(c.candidateName||c.username)+'</strong>'+(c.candidateId?' ('+c.candidateId+')':'')+' &middot; '+(c.exam||'')+' &middot; '+(c.date||'')+'<span class="challenge-status-badge '+c.status+'">'+c.status+'</span></div><div class="challenge-q">Q'+(Number(c.questionIndex)+1)+': '+c.questionText+'</div><div class="challenge-reason">"'+c.reason+'"</div><div class="challenge-opts-list"><div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.08em;">Marked correct:</div>'+cur.map(function(a){return '<span>'+a+'</span>';}).join('')+'<div style="font-size:0.65rem;color:#f87171;margin:0.4rem 0 0.2rem;text-transform:uppercase;letter-spacing:0.08em;">Candidate believes:</div>'+disp.map(function(a){return '<span class="disputed">'+a+'</span>';}).join('')+'</div>'+(!resolved?'<div class="challenge-acts"><button class="btn-ghost-sm" style="color:var(--teal);border-color:rgba(45,212,191,0.3);" onclick="resolveChallenge(''+c.id+'','accepted')">Accept</button><button class="btn-ghost-sm" style="color:#f87171;border-color:rgba(239,68,68,0.3);" onclick="resolveChallenge(''+c.id+'','rejected')">Reject</button></div>':'<div style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Resolved: '+(c.resolvedNote||'')+'</div>')+'</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading challenges.</div>';}
+}
+
+async function resolveChallenge(id,decision) {
+  var note=prompt(decision==='accepted'?'Note (optional):':'Reason (optional):')||'';
+  try{var res=await gasPost('resolveChallenge',{id:id,status:decision,resolvedNote:note});if(res.ok)await renderAdminChallenges();else alert('Error: '+(res.error||'Could not resolve.'));}catch(e){alert('Network error.');}
+}
+
   const wrap = document.getElementById('quizWrap');
   wrap.innerHTML = '';
 
@@ -1868,7 +2177,6 @@ function shuffleOptions(qs) {
 ════════════════════════════════════ */
 var _parsedQuestions = null;
 var _parsedName = '';
-var GAS_URL_KEY = 'gas_url';
 
 /* ── GAS URL management ── */
 function getGasUrl() { return _storeGet(GAS_URL_KEY) || ''; }
@@ -2493,31 +2801,9 @@ function saveEditQ(qi) {
 ══════════════════════════════════════ */
 let currentUser = null;
 
-const ADMIN_EMAIL    = 'backitup.crst2@gmail.com';
-const ADMIN_PASSWORD = 'JasCra@2328';
-const GOOGLE_CLIENT_ID = '27579080548-rlk6j8p0gomhaf59rqq513mjaio92o64.apps.googleusercontent.com';
 
 /* ── Storage helpers (window.storage with localStorage fallback) ── */
 /* ── Hashing ── */
-function hashPass(pass) {
-  // Simple deterministic hash - works without crypto.subtle, HTTPS, or special APIs
-  var str = pass + 'mca_salt_2025';
-  var hash = 0x811c9dc5;
-  for (var i = 0; i < str.length; i++) {
-    hash ^= str.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  // Extend to 64-char hex by mixing multiple rounds
-  var parts = [];
-  var h = hash;
-  for (var r = 0; r < 8; r++) {
-    h = ((h ^ (h >>> 16)) * 0x45d9f3b) >>> 0;
-    h = ((h ^ (h >>> 16)) * 0x85ebca6b) >>> 0;
-    h = (h ^ (h >>> 13)) >>> 0;
-    parts.push(h.toString(16).padStart(8, '0'));
-  }
-  return parts.join('');
-}
 
 /* ── JWT decode (no verify — client only) ── */
 function parseJwt(token) {
@@ -2666,30 +2952,8 @@ function enterAsGuest() {
   onLoginSuccess();
 }
 
-function initAuth() {
-  detectSandbox();
-
-  // 1. Handle Google OAuth redirect-back (token in URL hash)
-  if (_checkGoogleCallback()) return;
-
-  // 2. Restore persisted session (returning user — skip login gate)
-  var savedSession = null;
-  try { var raw = localStorage.getItem('mca_session'); if (raw) savedSession = JSON.parse(raw); } catch(_) {}
-  if (savedSession && savedSession.username) {
-    currentUser = savedSession;
-    _STORE['mca_session'] = currentUser;
-    document.getElementById('adminMainPanel').style.display = currentUser.isAdmin ? 'block' : 'none';
-    onLoginSuccess();
-    return;
-  }
-
-  // 3. No session — must log in first
-  delete _STORE['mca_session'];
-  window.location.replace('login.html');
-}
 
 /* ── Tab switch ── */
-function switchAuthTab(tab) { /* not used on quiz.html */ }
 
 /* ── Register ── */
 function doRegister() {
@@ -2786,17 +3050,6 @@ function closeUserDropOutside(e) {
 
 
 /* ── Admin Main Page Login ── */
-function doAdminMainLogin() {
-  var email = document.getElementById('adminMainEmail').value.trim().toLowerCase();
-  var pass  = document.getElementById('adminMainPass').value;
-  var err   = document.getElementById('adminMainErr');
-  if (!email || !pass) { showAuthErr(err, 'Enter email and password.'); return; }
-  if (email !== ADMIN_EMAIL.toLowerCase()) { showAuthErr(err, 'Admin account not recognised.'); return; }
-  if (pass !== ADMIN_PASSWORD) { showAuthErr(err, 'Incorrect password.'); return; }
-  currentUser = { username: 'admin', name: 'Jason Crasto', email: ADMIN_EMAIL, initials: 'JC', isAdmin: true };
-  _STORE['mca_session'] = currentUser;
-  onLoginSuccess();
-}
 
 /* ── Admin Login (email + password) from auth gate ── */
 function doAdminLogin() {
@@ -2820,23 +3073,8 @@ function doAdminLogin() {
 }
 
 /* ── Logout ── */
-function doLogout() {
-  currentUser = null;
-  adminUnlocked = false;
-  delete _STORE['mca_session'];
-  try { localStorage.removeItem('mca_session'); } catch(_) {}
-  window.location.replace('login.html');
-}
 
 /* ── Post-login ── */
-function onLoginSuccess() {
-  try { _onLoginSuccessInner(); } catch(e) {
-    console.error('onLoginSuccess failed:', e);
-    // Still hide the gate even if UI update fails
-    var gate = document.getElementById('authGate');
-    if (gate) gate.classList.add('hidden');
-  }
-}
 function _onLoginSuccessInner() {
   try { localStorage.setItem('mca_session', JSON.stringify(currentUser)); } catch(_) {}
   var gate = document.getElementById('authGate');
@@ -2899,50 +3137,10 @@ function _onLoginSuccessInner() {
   render();
 }
 
-function showAuthErr(el, msg) {
-  if (!el) { console.warn('Auth error (no element):', msg); return; }
-  el.textContent = msg; el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 5500);
-}
 
 /* ════════════════════════════════════
    SAVE RECORD — stored in Google Sheets
 ════════════════════════════════════ */
-async function saveRecord() {
-  if (!currentUser) { return; }
-  const right = scores.filter(Boolean).length;
-  const total = questions.length;
-  const pct = Math.round(right / total * 100);
-  const examName = activeExamName || 'Quick Quiz';
-  const btn = document.getElementById('saveRecordBtn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  try {
-    const res = await gasPost('saveRecord', {
-      username: currentUser.username,
-      name:     currentUser.name,
-      exam:     examName,
-      score:    right,
-      total:    total,
-      pct:      pct
-    });
-    if (res.ok) {
-      btn.textContent = '✓ Saved!';
-      btn.style.background = 'linear-gradient(135deg,var(--correct),#16a34a)';
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.textContent = 'Save Record';
-        btn.style.background = 'linear-gradient(135deg,var(--gold),#b8882e)';
-        openExams();
-      }, 1200);
-    } else {
-      btn.disabled = false; btn.textContent = 'Save Record';
-      console.error('saveRecord failed:', res.error);
-    }
-  } catch(e) {
-    btn.disabled = false; btn.textContent = 'Save Record';
-    console.error('saveRecord error:', e);
-  }
-}
 
 /* ════════════════════════════════════
    MY RECORDS MODAL
@@ -2953,50 +3151,7 @@ async function openRecords() {
   openM('recordsM');
 }
 
-async function renderRecords() {
-  const body = document.getElementById('recordsBody');
-  body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading…</div>';
-  try {
-    const res = await gasGet('getRecords', { username: currentUser.username });
-    const records = (res.ok && res.records) ? res.records.map(function(r){
-      return { exam: r.exam, score: Number(r.score), total: Number(r.total),
-               pct: Number(r.pct), date: r.date, time: r.time, verdict: r.verdict };
-    }) : [];
-    if (!records.length) {
-      body.innerHTML = '<div class="records-empty"><span style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.3;">—</span>No records yet. Complete a quiz and click <b style="color:var(--gold)">Save Record</b>.</div>';
-      return;
-    }
-    const avg = Math.round(records.reduce((s,r) => s + r.pct, 0) / records.length);
-    const best = Math.max(...records.map(r => r.pct));
-    body.innerHTML = '<div class="records-summary">'
-      + '<div class="summary-stat"><div class="summary-val">' + records.length + '</div><div class="summary-lbl">Attempts</div></div>'
-      + '<div class="summary-stat"><div class="summary-val">' + avg + '%</div><div class="summary-lbl">Avg Score</div></div>'
-      + '<div class="summary-stat"><div class="summary-val">' + best + '%</div><div class="summary-lbl">Best</div></div>'
-      + '</div>'
-      + records.map(r => {
-          const cls = r.pct >= 80 ? 'pass' : r.pct >= 60 ? 'mid' : 'fail';
-          const col = r.pct >= 80 ? 'var(--correct)' : r.pct >= 60 ? 'var(--gold)' : 'var(--wrong)';
-          return '<div class="record-item">'
-            + '<div class="record-row1"><div class="record-exam">' + r.exam + '</div><span class="record-score-badge ' + cls + '">' + r.pct + '%</span></div>'
-            + '<div class="record-row2">'
-            + '<div class="record-meta"><b>' + r.score + '/' + r.total + '</b> correct</div>'
-            + '<div class="record-meta">' + r.date + ' · ' + r.time + '</div>'
-            + '<div class="record-meta">' + r.verdict + '</div>'
-            + '</div>'
-            + '<div class="record-bar"><div class="record-bar-fill" style="width:' + r.pct + '%;background:' + col + ';"></div></div>'
-            + '</div>';
-        }).join('');
-  } catch(e) {
-    body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load records.</div>';
-    console.error('renderRecords error:', e);
-  }
-}
 
-async function confirmClearRecords() {
-  
-  await storeSet('records:' + currentUser.username, []);
-  await renderRecords();
-}
 
 /* ════════════════════════════════════
    ADMIN PANEL
@@ -3022,60 +3177,7 @@ async function switchAdminTab(tab) {
 }
 
 /* ── Script Store ── */
-async function saveScriptToStore(name, category, questionsArr, importedBy) {
-  try {
-    const res = await gasPost('saveScript', {
-      name: name,
-      category: category,
-      questionCount: questionsArr.length,
-      questions: questionsArr,
-      createdBy: importedBy || (currentUser ? currentUser.username : 'admin')
-    });
-    return res.ok ? res.id : null;
-  } catch(e) {
-    console.error('saveScriptToStore error:', e);
-    return null;
-  }
-}
 
-async function renderScriptStore() {
-  const list = document.getElementById('scriptStoreList');
-  const badge = document.getElementById('scriptStoreBadge');
-  list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div>';
-  try {
-    const res = await gasGet('getScripts', {});
-    const scripts = (res.ok && res.scripts) ? res.scripts : [];
-    if (badge) badge.textContent = scripts.length;
-    if (!scripts.length) {
-      list.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:var(--muted);font-size:0.84rem;">No scripts saved yet. Use Script Input to import question sets.</div>';
-      return;
-    }
-    window._adminScripts = scripts;
-    let html = '';
-    scripts.forEach(function(s, i) {
-      const catLabel = s.category === 'navigation' ? 'Navigation' : 'Stability';
-      const dateStr  = s.created ? new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '';
-      html += '<div class="script-store-item">';
-      html += '<div class="script-store-row1">';
-      html += '<div class="script-store-name">' + s.name + '</div>';
-      html += '<span class="script-store-cat ' + s.category + '">' + catLabel + '</span>';
-      html += '</div>';
-      html += '<div class="script-store-meta">';
-      html += '<span><b>' + s.questionCount + '</b> questions</span>';
-      html += '<span>By <b>' + (s.createdBy || 'admin') + '</b></span>';
-      html += '<span>' + dateStr + '</span>';
-      html += '</div>';
-      html += '<div class="script-store-acts">';
-      html += '<button class="btn-load" onclick="loadScriptFromStore(' + i + ')">Load into Quiz</button>';
-      html += '<button class="btn-ghost-sm" style="font-size:0.7rem;padding:0.3rem 0.7rem;" onclick="deleteScriptFromStore(\'' + s.id + '\')">Delete</button>';
-      html += '</div></div>';
-    });
-    list.innerHTML = html;
-  } catch(e) {
-    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load scripts.</div>';
-    console.error('renderScriptStore error:', e);
-  }
-}
 
 function loadScriptFromStore(i) {
   var s = window._adminScripts && window._adminScripts[i];
@@ -3091,88 +3193,8 @@ function loadScriptFromStore(i) {
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function deleteScriptFromStore(id) {
-  try {
-    await gasPost('deleteScript', { id: id });
-  } catch(e) { console.error('deleteScript error:', e); }
-  await renderScriptStore();
-}
 
-async function renderAdminRecords() {
-  var statsEl = document.getElementById('adminRecordStats');
-  var listEl  = document.getElementById('adminRecordsList');
-  if (!statsEl || !listEl) return;
-  const loading = '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:1rem;">Loading...</div>';
-  statsEl.innerHTML = loading; listEl.innerHTML = loading;
-  try {
-    const res = await gasGet('adminStats', {});
-    if (!res.ok) { listEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load records.</div>'; return; }
-    const s = res.stats;
-    const records = res.records || [];
-    statsEl.innerHTML =
-      '<div class="admin-stat"><div class="admin-stat-val">' + s.totalAttempts + '</div><div class="admin-stat-lbl">Total Attempts</div></div>' +
-      '<div class="admin-stat"><div class="admin-stat-val">' + s.avgScore + '%</div><div class="admin-stat-lbl">Avg Score</div></div>' +
-      '<div class="admin-stat"><div class="admin-stat-val">' + s.bestScore + '%</div><div class="admin-stat-lbl">Best Score</div></div>' +
-      '<div class="admin-stat"><div class="admin-stat-val">' + s.passRate + '%</div><div class="admin-stat-lbl">Pass Rate</div></div>';
-    if (!records.length) {
-      listEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.84rem;">No records saved yet.</div>';
-      return;
-    }
-    var rows = '';
-    records.forEach(function(r) {
-      var pct = Number(r.pct);
-      var cls = pct >= 80 ? 'pass' : pct >= 60 ? 'mid' : 'fail';
-      rows += '<tr>' +
-        '<td>' + (r.name || r.username || 'Unknown') + '</td>' +
-        '<td style="color:var(--text)">' + r.exam + '</td>' +
-        '<td class="score-cell ' + cls + '">' + pct + '% (' + r.score + '/' + r.total + ')</td>' +
-        '<td style="font-size:0.75rem;">' + r.date + ' ' + r.time + '</td>' +
-        '<td style="color:var(--muted);font-size:0.75rem;">' + r.verdict + '</td>' +
-        '</tr>';
-    });
-    listEl.innerHTML = '<table class="admin-users-table"><thead><tr>' +
-      '<th>User</th><th>Exam</th><th>Score</th><th>Date</th><th>Verdict</th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table>';
-  } catch(e) {
-    listEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading records.</div>';
-    console.error('renderAdminRecords error:', e);
-  }
-}
 
-async function renderAdminUsers() {
-  var el = document.getElementById('adminUsersList');
-  if (!el) return;
-  el.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:1rem;">Loading...</div>';
-  try {
-    const res = await gasGet('adminStats', {});
-    if (!res.ok) { el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load users.</div>'; return; }
-    const users = res.users || [];
-    const userSummary = res.userSummary || {};
-    if (!users.length) {
-      el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">No registered users yet.</div>';
-      return;
-    }
-    var rows = '';
-    users.forEach(function(u) {
-      var summary = userSummary[u.username] || { attempts: 0, best: 0 };
-      var joined = u.created ? new Date(u.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : 'Unknown';
-      rows += '<tr>' +
-        '<td style="font-weight:600;color:var(--white);">' + u.name + '</td>' +
-        '<td style="font-family:\'DM Mono\',monospace;font-size:0.72rem;color:var(--muted);">' + (u.email || '@' + u.username) + '</td>' +
-        '<td style="font-family:\'DM Mono\',monospace;font-size:0.7rem;">' + (u.provider || 'password') + '</td>' +
-        '<td style="font-family:\'DM Mono\',monospace;">' + summary.attempts + '</td>' +
-        '<td style="font-family:\'DM Mono\',monospace;color:var(--gold);">' + (summary.best ? summary.best + '%' : '—') + '</td>' +
-        '<td style="font-size:0.72rem;color:var(--muted);">' + joined + '</td>' +
-        '</tr>';
-    });
-    el.innerHTML = '<table class="admin-users-table"><thead><tr>' +
-      '<th>Name</th><th>Email / Username</th><th>Provider</th><th>Attempts</th><th>Best</th><th>Joined</th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table>';
-  } catch(e) {
-    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading users.</div>';
-    console.error('renderAdminUsers error:', e);
-  }
-}
 
 function renderAdminQuestions() {
   var el = document.getElementById('adminQList');
@@ -3206,178 +3228,8 @@ function renderAdminQuestions() {
 
 /* ── Kick off ── */
 /* Pre-seed removed — users stored in Google Sheets */
+
 initAuth();
-render();
-
-/* ════════════════════════════════════════════════════
-   CHALLENGE SYSTEM
-════════════════════════════════════════════════════ */
-var _challengeQi = null;
-if (!window._myChallenges) window._myChallenges = {};
-
-function openChallenge(qi) {
-  if (!currentUser) return;
-  _challengeQi = qi;
-  var q = questions[qi];
-  document.getElementById('challengeQText').textContent = (qi+1) + '. ' + q.title;
-  var sel = selected[qi] || new Set();
-  var html = q.options.map(function(o, oi) {
-    var wasSelected = sel.has(oi);
-    var cls = wasSelected ? 'challenge-opt selected' : 'challenge-opt';
-    return '<label class="' + cls + '" onclick="toggleChallengeOpt(this)">'
-      + '<input type="checkbox" value="' + oi + '"' + (wasSelected ? ' checked' : '') + ' style="pointer-events:none;">'
-      + '<span>' + o.text + '</span>'
-      + (o.isCorrect ? '<span style="margin-left:auto;font-size:0.65rem;color:var(--muted);flex-shrink:0;">[marked correct]</span>' : '')
-      + '</label>';
-  }).join('');
-  document.getElementById('challengeOptsList').innerHTML = html;
-  document.getElementById('challengeReason').value = '';
-  document.getElementById('challengeErr').textContent = '';
-  openM('challengeM');
-}
-
-function toggleChallengeOpt(el) {
-  el.classList.toggle('selected');
-  var cb = el.querySelector('input[type=checkbox]');
-  if (cb) cb.checked = !cb.checked;
-}
-
-async function submitChallenge() {
-  if (_challengeQi === null || !currentUser) return;
-  var reason  = document.getElementById('challengeReason').value.trim();
-  var errEl   = document.getElementById('challengeErr');
-  var checked = Array.from(document.querySelectorAll('#challengeOptsList input[type=checkbox]:checked'))
-    .map(function(cb){ return Number(cb.value); });
-  if (!reason)         { errEl.textContent = 'Please explain your reason for the challenge.'; return; }
-  if (!checked.length) { errEl.textContent = 'Please select the answer(s) you believe are correct.'; return; }
-
-  var qi  = _challengeQi;
-  var q   = questions[qi];
-  var btn = document.querySelector('#challengeM .btn-auth');
-  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
-  errEl.textContent = '';
-
-  try {
-    var res = await gasPost('saveChallenge', {
-      username:       currentUser.username,
-      candidateName:  currentUser.name,
-      candidateId:    currentUser.candidateId || '',
-      exam:           activeExamName || 'Unknown Exam',
-      questionIndex:  qi,
-      questionText:   q.title,
-      currentAnswers: q.options.filter(function(o){ return o.isCorrect; }).map(function(o){ return o.text; }),
-      disputedAnswers:checked.map(function(oi){ return q.options[oi].text; }),
-      reason:         reason,
-      allOptions:     q.options.map(function(o){ return o.text; })
-    });
-    if (btn) { btn.disabled = false; btn.textContent = 'Submit Challenge'; }
-    if (res.ok) {
-      window._myChallenges[qi] = true;
-      closeM('challengeM');
-      render();
-    } else {
-      errEl.textContent = res.error || 'Could not submit. Please try again.';
-    }
-  } catch(e) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Submit Challenge'; }
-    errEl.textContent = 'Network error. Please try again.';
-  }
-}
-
-async function renderAdminChallenges() {
-  var el    = document.getElementById('adminChallengesList');
-  var badge = document.getElementById('challengeBadge');
-  if (!el) return;
-  el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div>';
-  try {
-    var res = await gasGet('getChallenges', {});
-    var challenges = (res.ok && res.challenges) ? res.challenges : [];
-    var pending = challenges.filter(function(c){ return c.status === 'pending'; }).length;
-    if (badge) badge.textContent = pending;
-    if (!challenges.length) {
-      el.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:var(--muted);font-size:0.84rem;">No challenges submitted yet.</div>';
-      return;
-    }
-    var html = '';
-    challenges.forEach(function(c) {
-      var isResolved = c.status !== 'pending';
-      var currentAnswers  = typeof c.currentAnswers  === 'string' ? JSON.parse(c.currentAnswers||'[]')  : (c.currentAnswers||[]);
-      var disputedAnswers = typeof c.disputedAnswers === 'string' ? JSON.parse(c.disputedAnswers||'[]') : (c.disputedAnswers||[]);
-      html += '<div class="challenge-card' + (isResolved?' resolved':'') + '">';
-      html += '<div class="challenge-meta">#' + c.id
-        + ' &nbsp;·&nbsp; <strong style="color:var(--white);">' + (c.candidateName||c.username) + '</strong>'
-        + (c.candidateId?' &nbsp;('+c.candidateId+')':'')
-        + ' &nbsp;·&nbsp; ' + (c.exam||'') + ' &nbsp;·&nbsp; ' + (c.date||'')
-        + '<span class="challenge-status-badge ' + c.status + '">' + c.status + '</span></div>';
-      html += '<div class="challenge-q">Q' + (Number(c.questionIndex)+1) + ': ' + c.questionText + '</div>';
-      html += '<div class="challenge-reason">"' + c.reason + '"</div>';
-      html += '<div class="challenge-opts-list">';
-      html += '<div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.3rem;letter-spacing:0.08em;text-transform:uppercase;">Current marked correct:</div>';
-      currentAnswers.forEach(function(a){ html += '<span>' + a + '</span>'; });
-      html += '<div style="font-size:0.65rem;color:#f87171;margin:0.4rem 0 0.3rem;letter-spacing:0.08em;text-transform:uppercase;">Candidate believes correct:</div>';
-      disputedAnswers.forEach(function(a){ html += '<span class="disputed">' + a + '</span>'; });
-      html += '</div>';
-      if (!isResolved) {
-        html += '<div class="challenge-acts">'
-          + '<button class="btn-ghost-sm" style="color:var(--teal);border-color:rgba(45,212,191,0.3);" onclick="resolveChallenge(''+c.id+'','accepted')">✓ Accept Challenge</button>'
-          + '<button class="btn-ghost-sm" style="color:#f87171;border-color:rgba(239,68,68,0.3);" onclick="resolveChallenge(''+c.id+'','rejected')">✕ Reject</button>'
-          + '</div>';
-      } else {
-        html += '<div style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Resolved &nbsp;·&nbsp; ' + (c.resolvedNote||'') + '</div>';
-      }
-      html += '</div>';
-    });
-    el.innerHTML = html;
-  } catch(e) {
-    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading challenges.</div>';
-    console.error('renderAdminChallenges error:', e);
-  }
-}
-
-async function resolveChallenge(id, decision) {
-  var note = prompt((decision==='accepted'?'Accept note (optional):':'Reject reason (optional):')) || '';
-  try {
-    var res = await gasPost('resolveChallenge', { id:id, status:decision, resolvedNote:note });
-    if (res.ok) { await renderAdminChallenges(); }
-    else alert('Error: ' + (res.error||'Could not resolve.'));
-  } catch(e) { alert('Network error. Please try again.'); }
-}
-
 </script>
-<!-- FOOTER -->
-<div class="site-footer">
-  <div class="footer-copy">
-    Designed &amp; built by <span>Jason Crasto</span> · MCA NAVMASTER Assessment Platform · &copy; 2025
-  </div>
-  <div class="footer-copy" style="opacity:0.5;">
-    All questions based on MCA / STCW syllabi. For study use only.
-  </div>
-</div>
-
-
-<!-- ══ MODAL: CHALLENGE QUESTION ══ -->
-<div class="overlay" id="challengeM" onclick="overlayClick(event,'challengeM')">
-  <div class="modal">
-    <div class="m-head">
-      <div class="m-head-txt"><h2 style="color:#f87171;">Challenge Question</h2><p>RAISE A DISCREPANCY</p></div>
-      <button class="m-x" onclick="closeM('challengeM')">✕</button>
-    </div>
-    <div class="m-body">
-      <div id="challengeQText" style="font-size:0.88rem;color:var(--white);font-weight:600;margin-bottom:1rem;line-height:1.5;padding:0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--gold);"></div>
-      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.5rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;">The answer(s) you believe are correct:</div>
-      <div class="challenge-option-row" id="challengeOptsList"></div>
-      <div style="margin-top:1rem;">
-        <label style="font-size:0.75rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Reason for challenge</label>
-        <textarea id="challengeReason" placeholder="Explain why you believe the marked answer is incorrect…" style="width:100%;min-height:80px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.7rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:vertical;box-sizing:border-box;"></textarea>
-      </div>
-      <div class="auth-err" id="challengeErr" style="margin-top:0.5rem;"></div>
-    </div>
-    <div class="m-foot">
-      <button class="btn-ghost-sm" onclick="closeM('challengeM')">Cancel</button>
-      <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;padding:0.55rem 1.4rem;font-size:0.82rem;" onclick="submitChallenge()">Submit Challenge</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
