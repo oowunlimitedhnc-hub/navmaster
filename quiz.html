@@ -1948,7 +1948,7 @@ var scriptCat = 'navigation';
         if (!exists && s.questions) {
           var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
           exams.push({ name:s.name, desc:'By '+(s.createdBy||'admin'), category:s.category||'navigation',
-            questions:qs, fromGas:true, noShuffle:true, date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'' });
+            questions:qs, fromGas:true, noShuffle:true, id:s.id, published:(s.published==='1'||s.published===true||s.published===1), date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'' });
           changed = true;
         }
       });
@@ -2584,12 +2584,21 @@ function _saveToLibraryInternal() {
   var date = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
   var exists = exams.some(function(e) { return e.name === _parsedName; });
   if (!exists) {
-    exams.push({ name:_parsedName, desc:'Saved from Script Input', category:scriptCat,
-      questions:JSON.parse(JSON.stringify(_parsedQuestions)), noShuffle:true, date:date });
-    document.getElementById('examBadge').textContent = exams.length;
-    _storeSet('exams', exams);
     var importedBy = currentUser ? currentUser.name : 'Guest';
-    saveScriptToStore(_parsedName, scriptCat, _parsedQuestions, importedBy).catch(function(){});
+    var newExam = { name:_parsedName, desc:'Saved from Script Input', category:scriptCat,
+      questions:JSON.parse(JSON.stringify(_parsedQuestions)), noShuffle:true,
+      published:false, date:date };
+    exams.push(newExam);
+    _storeSet('exams', exams);
+    // Save to GAS and store the returned id for publish/delete
+    saveScriptToStore(_parsedName, scriptCat, _parsedQuestions, importedBy).then(function(res) {
+      if (res && res.id) {
+        var idx = exams.findIndex ? exams.findIndex(function(e){ return e.name === _parsedName; })
+                  : (function(){ for(var j=0;j<exams.length;j++) if(exams[j].name===_parsedName) return j; return -1; })();
+        if (idx !== -1) { exams[idx].id = res.id; _storeSet('exams', exams); }
+      }
+    }).catch(function(){});
+    document.getElementById('examBadge').textContent = (currentUser && currentUser.isAdmin) ? exams.length : exams.filter(function(e){ return e.published===true||e.published==='1'; }).length;
   }
 }
 
@@ -2662,7 +2671,7 @@ window.openExams = async function openExams() {
           });
         }
       });
-      document.getElementById('examBadge').textContent = exams.length;
+      document.getElementById('examBadge').textContent = (currentUser && currentUser.isAdmin) ? exams.length : exams.filter(function(e){ return e.published === true || e.published === '1' || e.published === 1; }).length;
       _storeSet('exams', exams);
     }
   } catch(e) { /* offline — use cached exams */ }
@@ -2679,38 +2688,63 @@ function switchCat(cat) {
 }
 
 function renderExams() {
-  const body = document.getElementById('examListBody');
-  // update counts
-  ['navigation','stability'].forEach(cat => {
-    const n = exams.filter(e => (e.category||'navigation') === cat).length;
-    const el = document.getElementById('catCount-' + cat);
+  var body = document.getElementById('examListBody');
+  var isAdmin = currentUser && currentUser.isAdmin;
+
+  // For candidates only show published exams
+  var visible = exams.map(function(ex, i) { return Object.assign({}, ex, {_i:i}); }).filter(function(ex) {
+    if ((ex.category || 'navigation') !== activeCategory) return false;
+    if (isAdmin) return true;  // admin sees all
+    return ex.published === true || ex.published === '1' || ex.published === 1;
+  });
+
+  // Update tab counts (admin sees all, candidates see only published)
+  ['navigation','stability'].forEach(function(cat) {
+    var n = exams.filter(function(e) {
+      if ((e.category||'navigation') !== cat) return false;
+      return isAdmin ? true : (e.published === true || e.published === '1' || e.published === 1);
+    }).length;
+    var el = document.getElementById('catCount-' + cat);
     if (el) el.textContent = n;
   });
 
-  const filtered = exams.map((ex,i) => ({...ex, _i:i})).filter(e => (e.category||'navigation') === activeCategory);
-
-  if (!filtered.length) {
-    const label = activeCategory === 'navigation' ? '🧭 Navigation' : '⚖️ Stability';
-    body.innerHTML = `<div class="exam-empty"><span>${activeCategory==='navigation'?'🧭':'⚖️'}</span>No ${label} exams yet.<br>Save an exam and assign it to this category.</div>`;
+  if (!visible.length) {
+    var label = activeCategory === 'navigation' ? '🧭 Navigation' : '⚖️ Stability';
+    var msg   = isAdmin
+      ? 'No ' + label + ' exams yet. Upload via Script Input.'
+      : 'No ' + label + ' exams available yet.';
+    body.innerHTML = '<div class="exam-empty"><span>' + (activeCategory==='navigation'?'🧭':'⚖️') + '</span>' + msg + '</div>';
     return;
   }
 
-  const icon = activeCategory === 'navigation' ? '🧭' : '⚖️';
-  body.innerHTML = `<div class="cat-section-label">${activeCategory === 'navigation' ? '🧭 Navigation Exams' : '⚖️ Stability Exams'}</div>
-  <div class="exam-list">${filtered.map(ex => `
-    <div class="exam-item" data-cat="${activeCategory}">
-      <div class="exam-icon">${icon}</div>
-      <div class="exam-info">
-        <div class="exam-name">${ex.name}</div>
-        <div class="exam-meta">${ex.questions.length} questions · ${ex.date}</div>
-        ${ex.desc ? `<div class="exam-desc">${ex.desc}</div>` : ''}
-      </div>
-      <div class="exam-acts">
-        <button class="btn-load" onclick="loadExam(${ex._i})">▶ Load</button>
-        <button class="btn-del-exam" onclick="deleteExam(${ex._i})">✕</button>
-      </div>
-    </div>
-  `).join('')}</div>`;
+  var icon = activeCategory === 'navigation' ? '🧭' : '⚖️';
+  var label = activeCategory === 'navigation' ? '🧭 Navigation Exams' : '⚖️ Stability Exams';
+  var html  = '<div class="cat-section-label">' + label + '</div><div class="exam-list">';
+
+  visible.forEach(function(ex) {
+    var isPub = ex.published === true || ex.published === '1' || ex.published === 1;
+    html += '<div class="exam-item" id="exam-item-' + ex._i + '">';
+    html += '<div class="exam-icon">' + icon + '</div>';
+    html += '<div class="exam-info">';
+    html += '<div class="exam-name">' + ex.name + '</div>';
+    html += '<div class="exam-meta">' + ex.questions.length + ' questions · ' + (ex.date||'') + '</div>';
+    if (ex.desc) html += '<div class="exam-desc">' + ex.desc + '</div>';
+    html += '</div>';
+    html += '<div class="exam-acts">';
+    html += '<button class="btn-load" onclick="loadExam(' + ex._i + ')">&#9654; Load</button>';
+    if (isAdmin) {
+      if (isPub) {
+        html += '<button class="btn-publish published" onclick="window.toggleExamPublish(' + ex._i + ', false)" title="Click to unpublish">&#10003; Live</button>';
+      } else {
+        html += '<button class="btn-publish unpublished" onclick="window.toggleExamPublish(' + ex._i + ', true)" title="Publish to candidates">&#8679; Publish</button>';
+      }
+      html += '<button class="btn-del-exam" onclick="window.confirmDeleteExam(' + ex._i + ')" title="Delete exam">&#128465;</button>';
+    }
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  body.innerHTML = html;
 }
 
 function loadExam(i) {
@@ -2727,12 +2761,39 @@ function loadExam(i) {
 }
 
 function deleteExam(i) {
-  
-  exams.splice(i,1);
-  document.getElementById('examBadge').textContent = exams.length;
+  exams.splice(i, 1);
   _storeSet('exams', exams);
+  document.getElementById('examBadge').textContent = exams.filter(function(e){
+    return currentUser && currentUser.isAdmin ? true : (e.published === true || e.published === '1');
+  }).length;
   renderExams();
 }
+
+function confirmDeleteExam(i) {
+  var ex = exams[i];
+  if (!ex) return;
+  if (!confirm('Delete "' + ex.name + '"?\nThis will remove it from the library permanently.')) return;
+  // If it came from GAS, delete from server too
+  if (ex.id) {
+    gasPost('deleteScript', { id: ex.id }).catch(function(){});
+  }
+  deleteExam(i);
+}
+window.confirmDeleteExam = confirmDeleteExam;
+
+function toggleExamPublish(i, publish) {
+  var ex = exams[i];
+  if (!ex) return;
+  ex.published = publish ? true : false;
+  exams[i] = ex;
+  _storeSet('exams', exams);
+  // Sync to GAS if it has an id
+  if (ex.id) {
+    gasPost('publishScript', { id: ex.id, published: publish }).catch(function(){});
+  }
+  renderExams();
+}
+window.toggleExamPublish = toggleExamPublish;
 
 /* ══════ SAVE EXAM ══════ */
 function openSaveExam() {
