@@ -2784,9 +2784,7 @@ function initGoogleAuth() { /* redirect flow needs no init */ }
 /* Checks for a Google token in the URL hash on page load. Returns true if handled. */
 /* ── Init ── */
 /* ── Sandbox / Drive detection ── */
-/* ── Tab switch ── */
 
-/* ── Register ── */
 /* ── Login (username or Candidate ID + password) ── */
 /* ── Admin Dropdown ── */
 /* ── User chip dropdown ── */
@@ -2809,94 +2807,7 @@ function closeUserDropOutside(e) {
 }
 
 
-/* ── Admin Main Page Login ── */
-
-/* ── Admin Login (email + password) from auth gate ── */
-function doAdminLogin() {
-  try {
-    var emailEl = document.getElementById('adminEmail');
-    var passEl  = document.getElementById('adminPass');
-    var err     = document.getElementById('adminErr');
-    var email   = emailEl ? emailEl.value.trim().toLowerCase() : '';
-    var pass    = passEl  ? passEl.value : '';
-    if (!email || !pass) { showAuthErr(err, 'Enter email and password.'); return; }
-    if (email !== ADMIN_EMAIL.toLowerCase()) { showAuthErr(err, 'Admin account not recognised.'); return; }
-    if (pass !== ADMIN_PASSWORD) { showAuthErr(err, 'Incorrect admin password.'); return; }
-    currentUser = { username: 'admin', name: 'Jason Crasto', email: ADMIN_EMAIL, initials: 'JC', isAdmin: true };
-    // session stored in localStorage
-    onLoginSuccess();
-  } catch(e) {
-    var err2 = document.getElementById('adminErr');
-    showAuthErr(err2, 'Login error: ' + e.message);
-    console.error('doAdminLogin error:', e);
-  }
-}
-
-/* ── Logout ── */
-
-/* ── Post-login ── */
-function _onLoginSuccessInner() {
-  try { localStorage.setItem('mca_session', JSON.stringify(currentUser)); } catch(_) {}
-  var gate = document.getElementById('authGate');
-  if (gate) gate.classList.add('hidden');
-  var regInline = document.getElementById('registerInline');
-  if (regInline) regInline.style.display = 'none';
-  var regSuccess = document.getElementById('regSuccess');
-  if (regSuccess) regSuccess.style.display = 'none';
-  const chip   = document.getElementById('userChip');
-  const chipAv = document.getElementById('userChipAv');
-  const chipNm = document.getElementById('userChipName');
-  const chipId = document.getElementById('userChipId');
-  chip.classList.remove('user-chip-admin','user-chip-google');
-
-  // Populate dropdown
-  const dropAv = document.getElementById('userDropAv');
-  const dropNm = document.getElementById('userDropName');
-  const dropId = document.getElementById('userDropId');
-
-  if (currentUser.isAdmin) {
-    chipAv.textContent = 'JC';
-    chipNm.textContent = 'Admin';
-    chipId.style.display = 'none';
-    chip.classList.add('user-chip-admin');
-    adminUnlocked = true;
-    document.getElementById('scriptInputBtn').style.display = '';
-    document.getElementById('addQBtn').style.display = '';
-    dropAv.textContent = 'JC';
-    dropNm.textContent = 'Jason Crasto';
-    dropId.textContent = 'Administrator';
-    // Show admin logged-in state on main panel
-    document.getElementById('adminMainPanel').style.display = 'block';
-    document.getElementById('adminMainLogin').style.display = 'none';
-    document.getElementById('adminMainLogged').style.display = 'block';
-  } else if (currentUser.picture) {
-    chipAv.innerHTML = '<img src="' + currentUser.picture + '" alt="' + currentUser.initials + '" referrerpolicy="no-referrer">';
-    chipNm.textContent = currentUser.name.split(' ')[0];
-    chipId.style.display = 'none';
-    chip.classList.add('user-chip-google');
-    document.getElementById('scriptInputBtn').style.display = 'none';
-    document.getElementById('adminMainPanel').style.display = 'none';
-    dropAv.textContent = currentUser.initials;
-    dropNm.textContent = currentUser.name;
-    dropId.textContent = currentUser.email || '';
-  } else {
-    chipAv.textContent = currentUser.initials;
-    chipNm.textContent = currentUser.name.split(' ')[0];
-    document.getElementById('adminMainPanel').style.display = 'none';
-    dropAv.textContent = currentUser.initials;
-    dropNm.textContent = currentUser.name;
-    if (currentUser.candidateId) {
-      chipId.textContent = currentUser.candidateId;
-      chipId.style.display = 'block';
-      dropId.textContent = currentUser.candidateId;
-    } else {
-      chipId.style.display = 'none';
-      dropId.textContent = '@' + currentUser.username;
-    }
-  }
-  render();
-}
-
+/* ── Admin Login ── */
 
 /* ════════════════════════════════════
    SAVE RECORD — stored in Google Sheets
