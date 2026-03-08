@@ -1877,7 +1877,7 @@ var scriptCat = 'navigation';
         if (!exists && s.questions) {
           var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
           exams.push({ name:s.name, desc:'By '+(s.createdBy||'admin'), category:s.category||'navigation',
-            questions:qs, date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'' });
+            questions:qs, fromGas:true, noShuffle:true, date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'' });
           changed = true;
         }
       });
@@ -2514,7 +2514,7 @@ function _saveToLibraryInternal() {
   var exists = exams.some(function(e) { return e.name === _parsedName; });
   if (!exists) {
     exams.push({ name:_parsedName, desc:'Saved from Script Input', category:scriptCat,
-      questions:JSON.parse(JSON.stringify(_parsedQuestions)), date:date });
+      questions:JSON.parse(JSON.stringify(_parsedQuestions)), noShuffle:true, date:date });
     document.getElementById('examBadge').textContent = exams.length;
     _storeSet('exams', exams);
     var importedBy = currentUser ? currentUser.name : 'Guest';
@@ -2643,8 +2643,9 @@ function renderExams() {
 }
 
 function loadExam(i) {
-  questions = shuffleOptions(JSON.parse(JSON.stringify(exams[i].questions)));
-  activeExamName = exams[i].name;
+  var _ex = exams[i];
+  questions = (_ex.noShuffle || _ex.fromGas) ? JSON.parse(JSON.stringify(_ex.questions)) : shuffleOptions(JSON.parse(JSON.stringify(_ex.questions)));
+  activeExamName = _ex.name;
   updateBanner();
   resetState();
   closeM('examsM');
@@ -3162,7 +3163,7 @@ window.switchAdminTab = async function switchAdminTab(tab) {
 function loadScriptFromStore(i) {
   var s = window._adminScripts && window._adminScripts[i];
   if (!s) return;
-  questions = shuffleOptions(JSON.parse(JSON.stringify(s.questions)));
+  questions = JSON.parse(JSON.stringify(s.questions));  // preserve original order
   activeExamName = s.name;
   updateBanner();
   resetState();
