@@ -1476,187 +1476,6 @@
 
 
 <script>
-/* ══════ DATA ══════ */
-/* ════════════════════════════════════
-   EMBEDDED FILE STORE
-   All data lives in this HTML file.
-   On any write, user is prompted to
-   re-save the updated file to Drive.
-════════════════════════════════════ */
-
-// ── Embedded data store (edit between the markers) ──
-
-var _storeDirty = false;
-var _saveDebounce = null;
-
-
-
-
-
-
-function _scheduleSave() {
-  _storeDirty = true;
-  clearTimeout(_saveDebounce);
-  _saveDebounce = setTimeout(_saveToFile, 1500);
-}
-
-function _saveToFile() {
-  if (!_storeDirty) return;
-  _storeDirty = false;
-  try {
-    // Read current HTML
-    var html = document.documentElement.outerHTML;
-    // Replace the data block
-    var dataStr = JSON.stringify(_STORE);
-    html = html.replace(/\/\*DATA_START\*\/[\s\S]*?\/\*DATA_END\*\//, '/*DATA_START*/' + dataStr + '/*DATA_END*/');
-    // Create download
-    var blob = new Blob([html], { type: 'text/html' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'mca_quiz.html';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
-    _showSaveNotice();
-  } catch(e) {
-    console.warn('Auto-save failed:', e);
-  }
-}
-
-function _showSaveNotice() {
-  var el = document.getElementById('saveNotice');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'saveNotice';
-    el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f1e35;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:DM Mono,monospace;font-size:0.65rem;letter-spacing:0.1em;padding:0.6rem 1.2rem;border-radius:20px;z-index:9999;pointer-events:none;transition:opacity 0.4s;white-space:nowrap;';
-    document.body.appendChild(el);
-  }
-  el.textContent = '✓ FILE SAVED — Replace on Google Drive';
-  el.style.opacity = '1';
-  setTimeout(function() { el.style.opacity = '0'; }, 3500);
-}
-
-// Compatibility wrappers (same API as before)
-function _lsGet(key) { return _storeGet(key); }
-function _lsSet(key, val) { return _storeSet(key, val); }
-function _lsList(prefix) { return _storeList(prefix); }
-
-/* ════════════════════════════════════════════════════════════
-   GOOGLE APPS SCRIPT API
-   All data (users, records, scripts) lives in Google Sheets.
-   Local _STORE is still used for exams/questions in-session.
-════════════════════════════════════════════════════════════ */
-
-function gasPost(action, data) {
-  return fetch(GAS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(Object.assign({ action: action }, data))
-  }).then(function(r) { return r.json(); });
-}
-
-function gasGet(action, params) {
-  var qs = Object.keys(params || {}).map(function(k) {
-    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-  }).join('&');
-  return fetch(GAS_URL + '?action=' + action + (qs ? '&' + qs : ''))
-    .then(function(r) { return r.json(); });
-}
-
-
-let questions = [
-  {
-    title: "When evaluating a passage plan on ECDIS, which management oversight actions are critical for ensuring navigational safety?",
-    options: [
-      {text: "Confirm that the look-ahead alarm is set to a proper time interval.", isCorrect: true},
-      { text: "Verify that the safety contour is set correctly for the deepest draft.", isCorrect: true},
-      {text: "Check that all ENCs on the route have been updated to the latest NM.", isCorrect: false},
-      {text: "Review the pick report for any hazards found along the planned track.", isCorrect: false },
-      {text: "Ensure that the cross-track limit is set to a safe distance margin.", isCorrect: true}
-    ],
-    explanation: "Management oversight on ECDIS requires specific verification of user-defined safety parameters: Safety Contour (which triggers the grounding alarm), Look-ahead (time/distance for detection), and XTD (defining the corridor of safety). While ENC updates and pick reports are standard planning tasks, the evaluation phase focuses on the integrity of these protective boundaries."
-  },
-  {
-    title: "A vessel in the Northern Hemisphere is identified as being in the dangerous semi-circle of a TRS. Which actions are required?",
-    options: [
-      { text: "Proceed with the wind on the starboard bow and make as much way.", isCorrect: true},
-      {text: "Increase the vessel speed to cross the path of the storm center.", isCorrect: false },
-      {text: "Alter the course to the right to keep the wind on the star. bow.", isCorrect: true},
-      {text: "Steer a course to place the wind on the starboard quarter area.", isCorrect: false},
-      {text: "Maintain the heading to keep the wind steady on the star. bow.", isCorrect: true}
-    ],
-    explanation: "In the dangerous semi-circle (N. Hemisphere), the goal is to haul out of the storm's path. The standard maneuver is to bring the wind onto the starboard bow, make as much way as possible, and alter course to the right as the wind veers to maintain that relative wind position. Placing the wind on the quarter is for the navigable semi-circle."
-  },
-  {
-    title: "According to MGN 379 and the BPG, which methods are prioritized for verifying the accuracy of electronic position fixes?",
-    options: [
-      {text: "Cross-check the GPS position using a different electronic system.", isCorrect: false},
-      {text: "Plot a radar range and bearing of a known object on the chart.", isCorrect: true},
-      {text: "Verify the satellite signal-to-noise ratio on the GNSS receiver.", isCorrect: false },
-      { text: "Compare the GPS coordinates with a visual bearing and a distance.", isCorrect: true},
-      {text: "Use parallel indexing to monitor the ship's track relative to land.", isCorrect: true}
-    ],
-    explanation: "MGN 379 emphasizes that electronic aids are just aids. Primary verification must be through independent means such as visual fixes, radar fixes, or parallel indexing. Comparing one GNSS to another (e.g., GPS to GLONASS) does not protect against common-mode failures like jamming or signal interference."
-  },
-  {
-    title: "Under SOLAS V Regulation 31, what are the Master's obligations and required procedures when ice is reported on or near the track?",
-    options: [
-      {text: "Communicate the ice report to the nearest coast radio station too.", isCorrect: true},
-      { text: "Report the presence of ice to all ships in the vicinity of the area.", isCorrect: true},
-      {text: "Ensure the bridge is manned by an additional lookout at all times.", isCorrect: false},
-      {text: "Record the ice encounter details in the official logbook of ship.", isCorrect: false },
-      {text: "Proceed at a moderate speed or alter the course to clear the ice.", isCorrect: true}
-    ],
-    explanation: "SOLAS V Reg 31 and 32 mandate Danger Messages. The Master is legally obligated to report ice to nearby ships and the nearest coastal authority. Furthermore, Reg 33 requires the Master to proceed at a moderate speed at night or alter course to pass well clear. While lookouts and logs are standard practice, they are not the core of the specific SOLAS regulatory obligation."
-  },
-  {
-    title: "When analyzing ARPA information for multiple targets, which factors must the OOW evaluate to determine appropriate avoiding action?",
-    options: [
-      {text: "Review the history of target movements over the last few mins.", isCorrect: false },
-      {text: "Check the accuracy of the speed and heading inputs to the ARPA.", isCorrect: true},
-      { text: "Assess the relative motion vectors to identify potential CPAs.", isCorrect: true},
-      {text: "Evaluate the true motion vectors to understand target headings.", isCorrect: false},
-      {text: "Monitor the change in the bearing of the target over the time.", isCorrect: true}
-    ],
-    explanation: "Collision risk is assessed via relative motion (CPA/TCPA) and the change of bearing (Rule 7). However, ARPA accuracy is entirely dependent on the integrity of inputs (Gyro/Log); therefore, verifying these inputs is a critical step in evaluating the data. True vectors help with aspect but are not the primary tool for determining risk of collision."
-  }
-]
-let exams = [], activeExamName = null;
-let quizSubmitted = false;
-let activeCategory = 'navigation';
-let saveCat = 'navigation';
-let scriptCat = 'navigation';
-
-// Load persisted exams from embedded store
-(function() {
-  var saved = _storeGet('exams');
-  if (Array.isArray(saved) && saved.length) {
-    exams = saved;
-    // Update badge after DOM ready
-    setTimeout(function() {
-      var badge = document.getElementById('examBadge');
-      if (badge) badge.textContent = exams.length;
-    }, 0);
-  }
-})();
-
-function resetState() {
-  selected = questions.map(() => new Set());
-  answered = questions.map(() => false);
-  scores = questions.map(() => null);
-  quizSubmitted = false;
-}
-resetState();
-
-/* ══════ RENDER ══════ */
-function render() {
-
-
-/* ====================================================
-   NAVMASTER CONFIG
-==================================================== */
 var GAS_URL          = 'https://script.google.com/macros/s/AKfycbwwJRWnvQuSNjI-JLzZg5LX5IdNT8ABhmaXPsjy4NuAzKvYUwAOQxvRV6Kn5s7VPVtR/exec';
 var GOOGLE_CLIENT_ID = '27579080548-rlk6j8p0gomhaf59rqq513mjaio92o64.apps.googleusercontent.com';
 var ADMIN_EMAIL      = 'backitup.crst2@gmail.com';
@@ -1852,6 +1671,194 @@ async function renderAdminUsers() {
 /* ====================================================
    CHALLENGE SYSTEM
 ==================================================== */
+
+/* ══════ DATA ══════ */
+/* ════════════════════════════════════
+   EMBEDDED FILE STORE
+   All data lives in this HTML file.
+   On any write, user is prompted to
+   re-save the updated file to Drive.
+════════════════════════════════════ */
+
+// ── Embedded data store (edit between the markers) ──
+
+var _storeDirty = false;
+var _saveDebounce = null;
+
+
+
+
+
+
+function _scheduleSave() {
+  _storeDirty = true;
+  clearTimeout(_saveDebounce);
+  _saveDebounce = setTimeout(_saveToFile, 1500);
+}
+
+function _saveToFile() {
+  if (!_storeDirty) return;
+  _storeDirty = false;
+  try {
+    // Read current HTML
+    var html = document.documentElement.outerHTML;
+    // Replace the data block
+    var dataStr = JSON.stringify(_STORE);
+    html = html.replace(/\/\*DATA_START\*\/[\s\S]*?\/\*DATA_END\*\//, '/*DATA_START*/' + dataStr + '/*DATA_END*/');
+    // Create download
+    var blob = new Blob([html], { type: 'text/html' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'mca_quiz.html';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
+    _showSaveNotice();
+  } catch(e) {
+    console.warn('Auto-save failed:', e);
+  }
+}
+
+function _showSaveNotice() {
+  var el = document.getElementById('saveNotice');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'saveNotice';
+    el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f1e35;border:1px solid rgba(45,212,191,0.4);color:var(--teal);font-family:DM Mono,monospace;font-size:0.65rem;letter-spacing:0.1em;padding:0.6rem 1.2rem;border-radius:20px;z-index:9999;pointer-events:none;transition:opacity 0.4s;white-space:nowrap;';
+    document.body.appendChild(el);
+  }
+  el.textContent = '✓ FILE SAVED — Replace on Google Drive';
+  el.style.opacity = '1';
+  setTimeout(function() { el.style.opacity = '0'; }, 3500);
+}
+
+// In-memory store for exams/questions (session only)
+var _STORE = {};
+function _storeGet(key) { return key in _STORE ? _STORE[key] : null; }
+function _storeSet(key, val) { _STORE[key] = val; return true; }
+function _storeDelete(key) { delete _STORE[key]; }
+function _storeList(prefix) { return Object.keys(_STORE).filter(function(k){ return k.startsWith(prefix); }); }
+function _lsGet(key) { return _storeGet(key); }
+function _lsSet(key, val) { return _storeSet(key, val); }
+function _lsList(prefix) { return _storeList(prefix); }
+
+/* ════════════════════════════════════════════════════════════
+   GOOGLE APPS SCRIPT API
+   All data (users, records, scripts) lives in Google Sheets.
+   Local _STORE is still used for exams/questions in-session.
+════════════════════════════════════════════════════════════ */
+
+function gasPost(action, data) {
+  return fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(Object.assign({ action: action }, data))
+  }).then(function(r) { return r.json(); });
+}
+
+function gasGet(action, params) {
+  var qs = Object.keys(params || {}).map(function(k) {
+    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+  return fetch(GAS_URL + '?action=' + action + (qs ? '&' + qs : ''))
+    .then(function(r) { return r.json(); });
+}
+
+
+var questions = [
+  {
+    title: "When evaluating a passage plan on ECDIS, which management oversight actions are critical for ensuring navigational safety?",
+    options: [
+      {text: "Confirm that the look-ahead alarm is set to a proper time interval.", isCorrect: true},
+      { text: "Verify that the safety contour is set correctly for the deepest draft.", isCorrect: true},
+      {text: "Check that all ENCs on the route have been updated to the latest NM.", isCorrect: false},
+      {text: "Review the pick report for any hazards found along the planned track.", isCorrect: false },
+      {text: "Ensure that the cross-track limit is set to a safe distance margin.", isCorrect: true}
+    ],
+    explanation: "Management oversight on ECDIS requires specific verification of user-defined safety parameters: Safety Contour (which triggers the grounding alarm), Look-ahead (time/distance for detection), and XTD (defining the corridor of safety). While ENC updates and pick reports are standard planning tasks, the evaluation phase focuses on the integrity of these protective boundaries."
+  },
+  {
+    title: "A vessel in the Northern Hemisphere is identified as being in the dangerous semi-circle of a TRS. Which actions are required?",
+    options: [
+      { text: "Proceed with the wind on the starboard bow and make as much way.", isCorrect: true},
+      {text: "Increase the vessel speed to cross the path of the storm center.", isCorrect: false },
+      {text: "Alter the course to the right to keep the wind on the star. bow.", isCorrect: true},
+      {text: "Steer a course to place the wind on the starboard quarter area.", isCorrect: false},
+      {text: "Maintain the heading to keep the wind steady on the star. bow.", isCorrect: true}
+    ],
+    explanation: "In the dangerous semi-circle (N. Hemisphere), the goal is to haul out of the storm's path. The standard maneuver is to bring the wind onto the starboard bow, make as much way as possible, and alter course to the right as the wind veers to maintain that relative wind position. Placing the wind on the quarter is for the navigable semi-circle."
+  },
+  {
+    title: "According to MGN 379 and the BPG, which methods are prioritized for verifying the accuracy of electronic position fixes?",
+    options: [
+      {text: "Cross-check the GPS position using a different electronic system.", isCorrect: false},
+      {text: "Plot a radar range and bearing of a known object on the chart.", isCorrect: true},
+      {text: "Verify the satellite signal-to-noise ratio on the GNSS receiver.", isCorrect: false },
+      { text: "Compare the GPS coordinates with a visual bearing and a distance.", isCorrect: true},
+      {text: "Use parallel indexing to monitor the ship's track relative to land.", isCorrect: true}
+    ],
+    explanation: "MGN 379 emphasizes that electronic aids are just aids. Primary verification must be through independent means such as visual fixes, radar fixes, or parallel indexing. Comparing one GNSS to another (e.g., GPS to GLONASS) does not protect against common-mode failures like jamming or signal interference."
+  },
+  {
+    title: "Under SOLAS V Regulation 31, what are the Master's obligations and required procedures when ice is reported on or near the track?",
+    options: [
+      {text: "Communicate the ice report to the nearest coast radio station too.", isCorrect: true},
+      { text: "Report the presence of ice to all ships in the vicinity of the area.", isCorrect: true},
+      {text: "Ensure the bridge is manned by an additional lookout at all times.", isCorrect: false},
+      {text: "Record the ice encounter details in the official logbook of ship.", isCorrect: false },
+      {text: "Proceed at a moderate speed or alter the course to clear the ice.", isCorrect: true}
+    ],
+    explanation: "SOLAS V Reg 31 and 32 mandate Danger Messages. The Master is legally obligated to report ice to nearby ships and the nearest coastal authority. Furthermore, Reg 33 requires the Master to proceed at a moderate speed at night or alter course to pass well clear. While lookouts and logs are standard practice, they are not the core of the specific SOLAS regulatory obligation."
+  },
+  {
+    title: "When analyzing ARPA information for multiple targets, which factors must the OOW evaluate to determine appropriate avoiding action?",
+    options: [
+      {text: "Review the history of target movements over the last few mins.", isCorrect: false },
+      {text: "Check the accuracy of the speed and heading inputs to the ARPA.", isCorrect: true},
+      { text: "Assess the relative motion vectors to identify potential CPAs.", isCorrect: true},
+      {text: "Evaluate the true motion vectors to understand target headings.", isCorrect: false},
+      {text: "Monitor the change in the bearing of the target over the time.", isCorrect: true}
+    ],
+    explanation: "Collision risk is assessed via relative motion (CPA/TCPA) and the change of bearing (Rule 7). However, ARPA accuracy is entirely dependent on the integrity of inputs (Gyro/Log); therefore, verifying these inputs is a critical step in evaluating the data. True vectors help with aspect but are not the primary tool for determining risk of collision."
+  }
+]
+var exams = [], activeExamName = null;
+var quizSubmitted = false;
+var activeCategory = 'navigation';
+var saveCat = 'navigation';
+var scriptCat = 'navigation';
+
+// Load persisted exams from embedded store
+(function() {
+  var saved = _storeGet('exams');
+  if (Array.isArray(saved) && saved.length) {
+    exams = saved;
+    // Update badge after DOM ready
+    setTimeout(function() {
+      var badge = document.getElementById('examBadge');
+      if (badge) badge.textContent = exams.length;
+    }, 0);
+  }
+})();
+
+function resetState() {
+  selected = questions.map(() => new Set());
+  answered = questions.map(() => false);
+  scores = questions.map(() => null);
+  quizSubmitted = false;
+}
+resetState();
+
+/* ══════ RENDER ══════ */
+function render() {
+
+
+/* ====================================================
+   NAVMASTER CONFIG
+==================================================== */
+
 window._myChallenges = {};
 var _challengeQi = null;
 
@@ -2180,7 +2187,7 @@ var _parsedName = '';
 function saveGasUrl() {
   var url = document.getElementById('gasUrlInput').value.trim();
   if (!url) return;
-  _storeSet(GAS_URL_KEY, url);
+  /* GAS URL is hardcoded */
   _updateGasUrlStatus(url);
 }
 
@@ -2515,9 +2522,9 @@ function updateBanner() {
 }
 
 /* ══════ TIMER ══════ */
-let timerInterval = null;
-let timerSeconds = 0;
-let selectedTimerMins = 60;
+var timerInterval = null;
+var timerSeconds = 0;
+var selectedTimerMins = 60;
 
 function openTimerM() {
   document.getElementById('timerCustom').value = '';
@@ -2613,9 +2620,9 @@ function showErr(el, msg) {
 }
 
 /* ══════ ADMIN EDIT QUESTION ══════ */
-const ADMIN_PIN = '1234';
-let pinBuffer = '';
-let editTargetQi = null;
+var ADMIN_PIN = '1234';
+var pinBuffer = '';
+var editTargetQi = null;
 
 function openEditQ(qi) {
   editTargetQi = qi;
