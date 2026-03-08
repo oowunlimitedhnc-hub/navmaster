@@ -995,7 +995,6 @@
     <div class="auth-tabs">
       <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Sign In</button>
       <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Register</button>
-      <button class="auth-tab" id="tabAdmin" onclick="switchAuthTab('admin')" style="color:var(--gold);">Admin</button>
     </div>
 
     <!-- CANDIDATE LOGIN -->
@@ -1061,7 +1060,7 @@
     <div class="auth-footer" id="authFooterText">Sign in with Google for the fastest access.<br>Records saved per account across sessions.</div>
 
     <!-- ADMIN LOGIN FORM -->
-    <div id="adminForm" style="display:none;">
+    <div id="adminForm" style="display:none;visibility:hidden;position:absolute;">
       <div id="adminLoginFields">
         <div style="text-align:center;margin-bottom:1.4rem;">
           <div style="font-size:2rem;margin-bottom:0.3rem;">⚙</div>
@@ -2773,23 +2772,15 @@ function initAuth() {
 function switchAuthTab(tab) {
   document.getElementById('loginForm').style.display    = tab === 'login'    ? '' : 'none';
   document.getElementById('registerForm').style.display = tab === 'register' ? '' : 'none';
-  document.getElementById('adminForm').style.display    = tab === 'admin'    ? '' : 'none';
-  ['tabLogin','tabRegister','tabAdmin'].forEach(function(id) {
+  ['tabLogin','tabRegister'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.classList.remove('active');
   });
   var activeTab = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
   if (activeTab) activeTab.classList.add('active');
-  if (tab === 'admin') {
-    const isAdmin = currentUser && currentUser.isAdmin;
-    document.getElementById('adminLoginFields').style.display = isAdmin ? 'none' : '';
-    document.getElementById('adminLoggedIn').style.display    = isAdmin ? '' : 'none';
-  }
   const footer = document.getElementById('authFooterText');
-  if (footer) footer.textContent = tab === 'admin'
-    ? 'Admin access restricted to authorised personnel only.'
-    : tab === 'register'
-    ? 'Your Candidate ID will be shown after registration — save it!'
+  if (footer) footer.textContent = tab === 'register'
+    ? 'Your Candidate ID & password will be emailed to you upon registration.'
     : 'Sign in with Google for fastest access. Records saved per account.';
 }
 
