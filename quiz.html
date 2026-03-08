@@ -1455,21 +1455,27 @@
   <div class="modal">
     <div class="m-head">
       <div class="m-head-txt"><h2 style="color:#f87171;">Challenge Question</h2><p>RAISE A DISCREPANCY</p></div>
-      <button class="m-x" onclick="closeM('challengeM')">X</button>
+      <button class="m-x" onclick="closeM('challengeM')">&times;</button>
     </div>
     <div class="m-body">
-      <div id="challengeQText" style="font-size:0.88rem;color:var(--white);font-weight:600;margin-bottom:1rem;line-height:1.5;padding:0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--gold);"></div>
-      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;">Select the answer(s) you believe are correct:</div>
-      <div class="challenge-option-row" id="challengeOptsList"></div>
-      <div style="margin-top:1rem;">
-        <label style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Your reason</label>
-        <textarea id="challengeReason" placeholder="Explain why you believe the marked answer is incorrect..." style="width:100%;min-height:80px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.7rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:vertical;box-sizing:border-box;"></textarea>
+      <div id="challengeQText" style="font-size:0.88rem;color:var(--white);font-weight:600;margin-bottom:1.2rem;line-height:1.5;padding:0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--gold);"></div>
+      <div style="margin-bottom:1rem;">
+        <label style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:0.5rem;">Which answer(s) do you believe are correct?</label>
+        <div class="challenge-option-row" id="challengeOptsList"></div>
+      </div>
+      <div>
+        <label style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:0.5rem;">Your written review / reason <span style="color:#f87171;">*</span></label>
+        <textarea id="challengeReason" placeholder="Please explain clearly why you believe the marked answer is incorrect. Include any references, regulations or reasoning to support your challenge..." style="width:100%;min-height:110px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.8rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.84rem;resize:vertical;box-sizing:border-box;line-height:1.6;" oninput="document.getElementById('challengeCharCount').textContent=this.value.length"></textarea>
+        <div style="font-size:0.65rem;color:var(--muted);text-align:right;margin-top:0.3rem;font-family:'DM Mono',monospace;"><span id="challengeCharCount">0</span> characters</div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:0.8rem;padding:0.6rem;background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.2);border-radius:8px;line-height:1.5;">
+        &#9888; Your challenge will be reviewed by the assessment team. You will be notified of the outcome.
       </div>
       <div class="auth-err" id="challengeErr" style="margin-top:0.5rem;"></div>
     </div>
     <div class="m-foot">
       <button class="btn-ghost-sm" onclick="closeM('challengeM')">Cancel</button>
-      <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;padding:0.55rem 1.4rem;font-size:0.82rem;" onclick="submitChallenge()">Submit Challenge</button>
+      <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;padding:0.55rem 1.5rem;font-size:0.84rem;" onclick="submitChallenge()">Submit Challenge</button>
     </div>
   </div>
 </div>
@@ -2009,11 +2015,7 @@ async function resolveChallenge(id,decision) {
         }).join('')}
       </div>
       <div class="expl ${locked?'show':''}"><strong>📌 Explanation</strong>${q.explanation}</div>
-      ${(locked && quizSubmitted && currentUser) ? (() => {
-        var ch = (window._myChallenges || {})[qi];
-        if (ch) return '<div class="challenge-btn submitted">✓ Challenge submitted</div>';
-        return '<button class="challenge-btn" onclick="openChallenge(' + qi + ')">⚑ Challenge this answer</button>';
-      })() : ''}
+      ${(locked && quizSubmitted && currentUser) ? (window._myChallenges[qi] ? '<div class="challenge-btn submitted">&#10003; Challenge submitted</div>' : '<button class="challenge-btn" onclick="openChallenge(' + String(qi) + ')">&#9873; Challenge this answer</button>') : ''}
     `;
     wrap.appendChild(card);
   });
