@@ -1693,26 +1693,28 @@ function doLogout() {
 
 function onLoginSuccess() {
   try { localStorage.setItem('mca_session', JSON.stringify(currentUser)); } catch(_) {}
-  var chip   = document.getElementById('userChip');
-  var chipAv = document.getElementById('userChipAv');
-  var chipNm = document.getElementById('userChipName');
-  var chipId = document.getElementById('userChipId');
-  var dropAv = document.getElementById('userDropAv');
-  var dropNm = document.getElementById('userDropName');
-  var dropId = document.getElementById('userDropId');
-  if (chip) chip.classList.remove('user-chip-admin','user-chip-google');
 
+  var chip    = document.getElementById('userChip');
+  var chipAv  = document.getElementById('userChipAv');
+  var chipNm  = document.getElementById('userChipName');
+  var chipId  = document.getElementById('userChipId');
+  var dropAv  = document.getElementById('userDropAv');
+  var dropNm  = document.getElementById('userDropName');
+  var dropId  = document.getElementById('userDropId');
   var adminPanel  = document.getElementById('adminMainPanel');
   var adminLogin  = document.getElementById('adminMainLogin');
   var adminLogged = document.getElementById('adminMainLogged');
 
+  if (chip) chip.classList.remove('user-chip-admin','user-chip-google');
+
   if (currentUser.isAdmin) {
     adminUnlocked = true;
-    if (chipAv) chipAv.textContent = 'JC';
-    if (chipNm) chipNm.textContent = 'Admin';
-    if (chipId) chipId.style.display = 'none';
+    var ini = 'JC';
+    if (chipAv) chipAv.textContent = ini;
+    if (chipNm) chipNm.textContent = 'Jason Crasto';
+    if (chipId) { chipId.textContent = 'Administrator'; chipId.style.display = 'block'; }
     if (chip)   chip.classList.add('user-chip-admin');
-    if (dropAv) dropAv.textContent = 'JC';
+    if (dropAv) dropAv.textContent = ini;
     if (dropNm) dropNm.textContent = 'Jason Crasto';
     if (dropId) dropId.textContent = 'Administrator';
     var addQ   = document.getElementById('addQBtn');
@@ -1722,25 +1724,32 @@ function onLoginSuccess() {
     if (adminPanel)  adminPanel.style.display  = 'block';
     if (adminLogin)  adminLogin.style.display  = 'none';
     if (adminLogged) adminLogged.style.display = 'block';
+
   } else if (currentUser.picture) {
+    // Google user
     if (chipAv) chipAv.innerHTML = '<img src="' + currentUser.picture + '" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
-    if (chipNm) chipNm.textContent = currentUser.name.split(' ')[0];
-    if (chipId) chipId.style.display = 'none';
+    if (chipNm) chipNm.textContent = currentUser.name;
+    if (chipId) { chipId.textContent = currentUser.email || ''; chipId.style.display = 'block'; }
     if (chip)   chip.classList.add('user-chip-google');
     if (dropAv) dropAv.textContent = currentUser.initials || 'G';
     if (dropNm) dropNm.textContent = currentUser.name;
     if (dropId) dropId.textContent = currentUser.email || '';
     if (adminPanel) adminPanel.style.display = 'none';
+
   } else {
+    // Password / registered candidate
     var ini = currentUser.initials || (currentUser.name||'U').split(' ').map(function(w){ return w[0]||''; }).join('').toUpperCase().slice(0,2);
     if (chipAv) chipAv.textContent = ini;
-    if (chipNm) chipNm.textContent = currentUser.name.split(' ')[0];
+    if (chipNm) chipNm.textContent = currentUser.name;
+    // Always show Candidate ID under name if available
     if (currentUser.candidateId) {
       if (chipId) { chipId.textContent = currentUser.candidateId; chipId.style.display = 'block'; }
-    } else { if (chipId) chipId.style.display = 'none'; }
+    } else {
+      if (chipId) chipId.style.display = 'none';
+    }
     if (dropAv) dropAv.textContent = ini;
     if (dropNm) dropNm.textContent = currentUser.name;
-    if (dropId) dropId.textContent = currentUser.candidateId || ('@' + currentUser.username);
+    if (dropId) dropId.textContent = currentUser.candidateId ? currentUser.candidateId + '  ·  ' + currentUser.username : currentUser.username;
     if (adminPanel) adminPanel.style.display = 'none';
   }
   render();
