@@ -2969,9 +2969,12 @@ function onLoginSuccess() {
 }
 function _onLoginSuccessInner() {
   try { localStorage.setItem('mca_session', JSON.stringify(currentUser)); } catch(_) {}
-  document.getElementById('authGate').classList.add('hidden');
-  document.getElementById('registerInline').style.display = 'none';
-  document.getElementById('regSuccess').style.display = 'none';
+  var gate = document.getElementById('authGate');
+  if (gate) gate.classList.add('hidden');
+  var regInline = document.getElementById('registerInline');
+  if (regInline) regInline.style.display = 'none';
+  var regSuccess = document.getElementById('regSuccess');
+  if (regSuccess) regSuccess.style.display = 'none';
   const chip   = document.getElementById('userChip');
   const chipAv = document.getElementById('userChipAv');
   const chipNm = document.getElementById('userChipName');
