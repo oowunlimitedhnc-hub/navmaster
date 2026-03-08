@@ -116,7 +116,7 @@
     <div class="auth-or">OR</div>
     <div class="auth-field">
       <label>Username or Candidate ID</label>
-      <input type="text" id="siUser" placeholder="Email, username or Candidate ID" autocomplete="username">
+      <input type="text" id="siUser" placeholder="e.g. jasoncrasto or CM-1234" autocomplete="username">
     </div>
     <div class="auth-field">
       <label>Password</label>
@@ -311,13 +311,11 @@ function triggerGoogleLogin() {
 }
 
 function handleGoogleToken(token) {
-  var _googleInfo = {};
   fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { 'Authorization': 'Bearer ' + token }
   })
   .then(function(r) { return r.json(); })
   .then(function(info) {
-    _googleInfo = info;
     var email    = info.email || '';
     var name     = info.name  || email.split('@')[0] || 'User';
     var picture  = info.picture || '';
@@ -325,20 +323,8 @@ function handleGoogleToken(token) {
     return gasPost('register', { username: username, name: name, email: email, picture: picture, provider: 'google' });
   })
   .then(function(res) {
-    if (res.ok) {
-      var u = res.user;
-      // Always attach picture from Google (GAS safeUser doesn't store it)
-      u.picture = _googleInfo.picture || '';
-      // Force isAdmin if email matches — belt-and-braces check
-      if (_googleInfo.email && _googleInfo.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-        u.isAdmin = true;
-      }
-      saveSession(u);
-      go();
-    } else {
-      window.location.hash = '';
-      document.getElementById('siErr').textContent = 'Google sign-in failed. Try again.';
-    }
+    if (res.ok) { saveSession(res.user); go(); }
+    else { window.location.hash = ''; document.getElementById('siErr').textContent = 'Google sign-in failed. Try again.'; }
   })
   .catch(function() {
     window.location.hash = '';
