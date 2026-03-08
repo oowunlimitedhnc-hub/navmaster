@@ -959,6 +959,45 @@
     .tbtn { font-size: 0.62rem; padding: 0.28rem 0.45rem; }
     .user-chip-name { max-width: 60px; }
   }
+
+  /* ── Challenge Button ── */
+  .challenge-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    margin-top: 0.9rem; padding: 0.45rem 1rem;
+    background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 8px; color: #f87171; font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .challenge-btn:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.5); }
+  .challenge-btn.submitted { background: rgba(45,212,191,0.08); border-color: rgba(45,212,191,0.3); color: var(--teal); cursor: default; }
+  .challenge-btn.submitted:hover { background: rgba(45,212,191,0.08); }
+  .challenge-option-row { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.8rem 0; }
+  .challenge-opt {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.6rem 0.8rem; border-radius: 8px;
+    border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+    cursor: pointer; transition: all 0.15s; font-size: 0.82rem; color: var(--text);
+  }
+  .challenge-opt:hover { border-color: var(--gold); background: rgba(212,168,67,0.05); }
+  .challenge-opt.selected { border-color: var(--gold); background: rgba(212,168,67,0.1); color: var(--white); }
+  .challenge-opt input[type=checkbox] { accent-color: var(--gold); width: 15px; height: 15px; flex-shrink: 0; }
+  .challenge-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem 1.2rem; margin-bottom: 0.8rem;
+  }
+  .challenge-card.resolved { opacity: 0.55; }
+  .challenge-meta { font-size: 0.68rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 0.5rem; }
+  .challenge-q { font-size: 0.85rem; color: var(--white); font-weight: 600; margin-bottom: 0.6rem; line-height: 1.4; }
+  .challenge-reason { font-size: 0.78rem; color: var(--text); background: rgba(255,255,255,0.03); border-left: 2px solid var(--gold); padding: 0.4rem 0.7rem; border-radius: 0 6px 6px 0; margin-bottom: 0.7rem; }
+  .challenge-opts-list { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.8rem; }
+  .challenge-opts-list span { display: inline-block; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 5px; padding: 0.2rem 0.5rem; margin: 0.15rem; }
+  .challenge-opts-list span.disputed { border-color: rgba(239,68,68,0.4); color: #f87171; background: rgba(239,68,68,0.06); }
+  .challenge-acts { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .challenge-status-badge { display: inline-block; font-size: 0.6rem; font-family: 'DM Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 4px; margin-left: 0.5rem; }
+  .challenge-status-badge.pending  { background: rgba(212,168,67,0.15); color: var(--gold); border: 1px solid rgba(212,168,67,0.3); }
+  .challenge-status-badge.accepted { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+  .challenge-status-badge.rejected { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
 </style>
 </head>
 <body>
@@ -1089,6 +1128,7 @@
         <button class="admin-tab" id="atab-records" onclick="switchAdminTab('records')">All User Records</button>
         <button class="admin-tab" id="atab-users" onclick="switchAdminTab('users')">Users</button>
         <button class="admin-tab" id="atab-questions" onclick="switchAdminTab('questions')">Edit Questions</button>
+        <button class="admin-tab" id="atab-challenges" onclick="switchAdminTab('challenges')">Challenges <span class="admin-badge" id="challengeBadge" style="background:rgba(239,68,68,0.2);color:#f87171;border-color:rgba(239,68,68,0.3);">0</span></button>
       </div>
 
       <!-- SCRIPTS PANEL -->
@@ -1113,6 +1153,14 @@
           Click any question's ✏️ edit button on the quiz to modify it. As admin, no PIN is required.
         </div>
         <div id="adminQList"></div>
+      </div>
+
+      <!-- CHALLENGES PANEL -->
+      <div class="admin-panel" id="apanel-challenges">
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;">
+          Review candidate challenges below. Accept to mark as valid, Reject to dismiss.
+        </div>
+        <div id="adminChallengesList"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div></div>
       </div>
     </div>
     <div class="m-foot">
@@ -1743,6 +1791,11 @@ function render() {
         }).join('')}
       </div>
       <div class="expl ${locked?'show':''}"><strong>📌 Explanation</strong>${q.explanation}</div>
+      ${(locked && quizSubmitted && currentUser) ? (() => {
+        var ch = (window._myChallenges || {})[qi];
+        if (ch) return '<div class="challenge-btn submitted">✓ Challenge submitted</div>';
+        return '<button class="challenge-btn" onclick="openChallenge(' + qi + ')">⚑ Challenge this answer</button>';
+      })() : ''}
     `;
     wrap.appendChild(card);
   });
@@ -3088,10 +3141,11 @@ async function switchAdminTab(tab) {
   const panelEl = document.getElementById('apanel-' + tab);
   if (tabEl) tabEl.classList.add('active');
   if (panelEl) panelEl.classList.add('active');
-  if (tab === 'scripts')   await renderScriptStore();
-  if (tab === 'records')   await renderAdminRecords();
-  if (tab === 'users')     await renderAdminUsers();
-  if (tab === 'questions') renderAdminQuestions();
+  if (tab === 'scripts')    await renderScriptStore();
+  if (tab === 'records')    await renderAdminRecords();
+  if (tab === 'users')      await renderAdminUsers();
+  if (tab === 'questions')  renderAdminQuestions();
+  if (tab === 'challenges') await renderAdminChallenges();
 }
 
 /* ── Script Store ── */
@@ -3281,6 +3335,141 @@ function renderAdminQuestions() {
 /* Pre-seed removed — users stored in Google Sheets */
 initAuth();
 render();
+
+/* ════════════════════════════════════════════════════
+   CHALLENGE SYSTEM
+════════════════════════════════════════════════════ */
+var _challengeQi = null;
+if (!window._myChallenges) window._myChallenges = {};
+
+function openChallenge(qi) {
+  if (!currentUser) return;
+  _challengeQi = qi;
+  var q = questions[qi];
+  document.getElementById('challengeQText').textContent = (qi+1) + '. ' + q.title;
+  var sel = selected[qi] || new Set();
+  var html = q.options.map(function(o, oi) {
+    var wasSelected = sel.has(oi);
+    var cls = wasSelected ? 'challenge-opt selected' : 'challenge-opt';
+    return '<label class="' + cls + '" onclick="toggleChallengeOpt(this)">'
+      + '<input type="checkbox" value="' + oi + '"' + (wasSelected ? ' checked' : '') + ' style="pointer-events:none;">'
+      + '<span>' + o.text + '</span>'
+      + (o.isCorrect ? '<span style="margin-left:auto;font-size:0.65rem;color:var(--muted);flex-shrink:0;">[marked correct]</span>' : '')
+      + '</label>';
+  }).join('');
+  document.getElementById('challengeOptsList').innerHTML = html;
+  document.getElementById('challengeReason').value = '';
+  document.getElementById('challengeErr').textContent = '';
+  openM('challengeM');
+}
+
+function toggleChallengeOpt(el) {
+  el.classList.toggle('selected');
+  var cb = el.querySelector('input[type=checkbox]');
+  if (cb) cb.checked = !cb.checked;
+}
+
+async function submitChallenge() {
+  if (_challengeQi === null || !currentUser) return;
+  var reason  = document.getElementById('challengeReason').value.trim();
+  var errEl   = document.getElementById('challengeErr');
+  var checked = Array.from(document.querySelectorAll('#challengeOptsList input[type=checkbox]:checked'))
+    .map(function(cb){ return Number(cb.value); });
+  if (!reason)         { errEl.textContent = 'Please explain your reason for the challenge.'; return; }
+  if (!checked.length) { errEl.textContent = 'Please select the answer(s) you believe are correct.'; return; }
+
+  var qi  = _challengeQi;
+  var q   = questions[qi];
+  var btn = document.querySelector('#challengeM .btn-auth');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+  errEl.textContent = '';
+
+  try {
+    var res = await gasPost('saveChallenge', {
+      username:       currentUser.username,
+      candidateName:  currentUser.name,
+      candidateId:    currentUser.candidateId || '',
+      exam:           activeExamName || 'Unknown Exam',
+      questionIndex:  qi,
+      questionText:   q.title,
+      currentAnswers: q.options.filter(function(o){ return o.isCorrect; }).map(function(o){ return o.text; }),
+      disputedAnswers:checked.map(function(oi){ return q.options[oi].text; }),
+      reason:         reason,
+      allOptions:     q.options.map(function(o){ return o.text; })
+    });
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit Challenge'; }
+    if (res.ok) {
+      window._myChallenges[qi] = true;
+      closeM('challengeM');
+      render();
+    } else {
+      errEl.textContent = res.error || 'Could not submit. Please try again.';
+    }
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit Challenge'; }
+    errEl.textContent = 'Network error. Please try again.';
+  }
+}
+
+async function renderAdminChallenges() {
+  var el    = document.getElementById('adminChallengesList');
+  var badge = document.getElementById('challengeBadge');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div>';
+  try {
+    var res = await gasGet('getChallenges', {});
+    var challenges = (res.ok && res.challenges) ? res.challenges : [];
+    var pending = challenges.filter(function(c){ return c.status === 'pending'; }).length;
+    if (badge) badge.textContent = pending;
+    if (!challenges.length) {
+      el.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:var(--muted);font-size:0.84rem;">No challenges submitted yet.</div>';
+      return;
+    }
+    var html = '';
+    challenges.forEach(function(c) {
+      var isResolved = c.status !== 'pending';
+      var currentAnswers  = typeof c.currentAnswers  === 'string' ? JSON.parse(c.currentAnswers||'[]')  : (c.currentAnswers||[]);
+      var disputedAnswers = typeof c.disputedAnswers === 'string' ? JSON.parse(c.disputedAnswers||'[]') : (c.disputedAnswers||[]);
+      html += '<div class="challenge-card' + (isResolved?' resolved':'') + '">';
+      html += '<div class="challenge-meta">#' + c.id
+        + ' &nbsp;·&nbsp; <strong style="color:var(--white);">' + (c.candidateName||c.username) + '</strong>'
+        + (c.candidateId?' &nbsp;('+c.candidateId+')':'')
+        + ' &nbsp;·&nbsp; ' + (c.exam||'') + ' &nbsp;·&nbsp; ' + (c.date||'')
+        + '<span class="challenge-status-badge ' + c.status + '">' + c.status + '</span></div>';
+      html += '<div class="challenge-q">Q' + (Number(c.questionIndex)+1) + ': ' + c.questionText + '</div>';
+      html += '<div class="challenge-reason">"' + c.reason + '"</div>';
+      html += '<div class="challenge-opts-list">';
+      html += '<div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.3rem;letter-spacing:0.08em;text-transform:uppercase;">Current marked correct:</div>';
+      currentAnswers.forEach(function(a){ html += '<span>' + a + '</span>'; });
+      html += '<div style="font-size:0.65rem;color:#f87171;margin:0.4rem 0 0.3rem;letter-spacing:0.08em;text-transform:uppercase;">Candidate believes correct:</div>';
+      disputedAnswers.forEach(function(a){ html += '<span class="disputed">' + a + '</span>'; });
+      html += '</div>';
+      if (!isResolved) {
+        html += '<div class="challenge-acts">'
+          + '<button class="btn-ghost-sm" style="color:var(--teal);border-color:rgba(45,212,191,0.3);" onclick="resolveChallenge(''+c.id+'','accepted')">✓ Accept Challenge</button>'
+          + '<button class="btn-ghost-sm" style="color:#f87171;border-color:rgba(239,68,68,0.3);" onclick="resolveChallenge(''+c.id+'','rejected')">✕ Reject</button>'
+          + '</div>';
+      } else {
+        html += '<div style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Resolved &nbsp;·&nbsp; ' + (c.resolvedNote||'') + '</div>';
+      }
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading challenges.</div>';
+    console.error('renderAdminChallenges error:', e);
+  }
+}
+
+async function resolveChallenge(id, decision) {
+  var note = prompt((decision==='accepted'?'Accept note (optional):':'Reject reason (optional):')) || '';
+  try {
+    var res = await gasPost('resolveChallenge', { id:id, status:decision, resolvedNote:note });
+    if (res.ok) { await renderAdminChallenges(); }
+    else alert('Error: ' + (res.error||'Could not resolve.'));
+  } catch(e) { alert('Network error. Please try again.'); }
+}
+
 </script>
 <!-- FOOTER -->
 <div class="site-footer">
@@ -3289,6 +3478,31 @@ render();
   </div>
   <div class="footer-copy" style="opacity:0.5;">
     All questions based on MCA / STCW syllabi. For study use only.
+  </div>
+</div>
+
+
+<!-- ══ MODAL: CHALLENGE QUESTION ══ -->
+<div class="overlay" id="challengeM" onclick="overlayClick(event,'challengeM')">
+  <div class="modal">
+    <div class="m-head">
+      <div class="m-head-txt"><h2 style="color:#f87171;">Challenge Question</h2><p>RAISE A DISCREPANCY</p></div>
+      <button class="m-x" onclick="closeM('challengeM')">✕</button>
+    </div>
+    <div class="m-body">
+      <div id="challengeQText" style="font-size:0.88rem;color:var(--white);font-weight:600;margin-bottom:1rem;line-height:1.5;padding:0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--gold);"></div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.5rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;">The answer(s) you believe are correct:</div>
+      <div class="challenge-option-row" id="challengeOptsList"></div>
+      <div style="margin-top:1rem;">
+        <label style="font-size:0.75rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Reason for challenge</label>
+        <textarea id="challengeReason" placeholder="Explain why you believe the marked answer is incorrect…" style="width:100%;min-height:80px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.7rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+      <div class="auth-err" id="challengeErr" style="margin-top:0.5rem;"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn-ghost-sm" onclick="closeM('challengeM')">Cancel</button>
+      <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;padding:0.55rem 1.4rem;font-size:0.82rem;" onclick="submitChallenge()">Submit Challenge</button>
+    </div>
   </div>
 </div>
 
