@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NavMaster — Sign In</title>
+<title>NAVMASTER — Sign In</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -988,7 +988,7 @@
         <circle cx="50" cy="14" r="2.5" fill="#D4A843"/>
         <circle cx="14" cy="50" r="2.5" fill="#D4A843"/>
       </svg>
-      <div class="auth-logo-title">Chief Mate</div>
+      <div class="auth-logo-title">NAVMASTER</div>
       <div class="auth-logo-sub">MCA Modernized Assessment · UK</div>
     </div>
 
@@ -1040,16 +1040,9 @@
         <input type="text" id="regUser" placeholder="Choose a username" autocomplete="username">
       </div>
       <div class="auth-field">
-        <label>Email Address <span style="color:var(--teal);font-size:0.7rem;">— your Candidate ID &amp; password will be sent here</span></label>
+        <label>Email Address</label>
+        <div style="font-size:0.72rem;color:var(--teal);margin-bottom:0.4rem;margin-top:-0.2rem;">✉ Your Candidate ID &amp; password will be emailed to you</div>
         <input type="email" id="regEmail" placeholder="e.g. jason@example.com" autocomplete="email">
-      </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <input type="password" id="regPass" placeholder="Min. 4 characters" autocomplete="new-password">
-      </div>
-      <div class="auth-field">
-        <label>Confirm Password</label>
-        <input type="password" id="regPass2" placeholder="Repeat password" autocomplete="new-password">
       </div>
       <button class="btn-auth" onclick="doRegister()">Create Account</button>
       <div class="auth-err" id="registerErr"></div>
@@ -1221,8 +1214,8 @@
 <!-- MASTHEAD -->
 <div class="masthead">
   <div class="masthead-tag">MCA Modernized Assessment · UK</div>
-  <h1>Chief Mate<br><span style="font-size:0.55em;font-family:'DM Mono',monospace;letter-spacing:0.18em;color:var(--gold);font-weight:400;text-transform:uppercase;">Professional Assessment</span></h1>
-  <p>Advanced navigational knowledge for Chief Mate candidates. All questions require multiple correct answers — select all that apply before checking.</p>
+  <h1>NAVMASTER<br><span style="font-size:0.55em;font-family:'DM Mono',monospace;letter-spacing:0.18em;color:var(--gold);font-weight:400;text-transform:uppercase;">Professional Assessment</span></h1>
+  <p>Advanced navigational knowledge for NAVMASTER candidates. All questions require multiple correct answers — select all that apply before checking.</p>
 </div>
 
 <!-- ADMIN LOGIN PANEL (main page) -->
@@ -1358,7 +1351,7 @@
       </div>
       <div class="frow">
         <label class="flabel">EXAM NAME</label>
-        <input type="text" id="scriptName" placeholder="e.g. Chief Mate — Watch Keeping Module">
+        <input type="text" id="scriptName" placeholder="e.g. NAVMASTER — Watch Keeping Module">
       </div>
       <div class="frow">
         <label class="flabel">PASTE JSON ARRAY</label>
@@ -1824,7 +1817,7 @@ function checkDone() {
   wrap.classList.add('show');
   document.getElementById('scoreBig').innerHTML = `${right}<span> / ${total}</span>`;
   document.getElementById('scoreNote').textContent =
-    pct>=80 ? '⚓ Excellent — Ready for Chief Mate Assessment.' :
+    pct>=80 ? '⚓ Excellent — Ready for NAVMASTER Assessment.' :
     pct>=60 ? '📚 Good effort — Review the flagged areas.' :
     '🔁 Further study recommended before assessment.';
   // Smooth scroll to score only after submit, not on every render
@@ -2701,6 +2694,14 @@ function _fetchGoogleUserInfo(accessToken) {
                         isAdmin: u.isAdmin || isAdmin, candidateId: u.candidateId || '' };
         _STORE['mca_session'] = currentUser;
         if (btn) { btn.disabled = false; btn.innerHTML = _googleBtnInner(); }
+        // Show brief welcome notice for brand new Google accounts
+        if (res.ok && !res.existing) {
+          var errEl = document.getElementById('loginErr');
+          if (errEl) {
+            errEl.style.color = 'var(--teal)';
+            errEl.textContent = '✉ Welcome! Login details sent to ' + email;
+          }
+        }
         onLoginSuccess();
       });
   })
@@ -2797,44 +2798,39 @@ function doRegister() {
   const name  = document.getElementById('regName').value.trim();
   const user  = document.getElementById('regUser').value.trim().toLowerCase();
   const email = document.getElementById('regEmail').value.trim().toLowerCase();
-  const pass  = document.getElementById('regPass').value;
-  const pass2 = document.getElementById('regPass2').value;
   const err   = document.getElementById('registerErr');
 
-  if (!name || !user || !email || !pass) { showAuthErr(err, 'All fields are required.'); return; }
-  if (user.length < 3)  { showAuthErr(err, 'Username must be at least 3 characters.'); return; }
+  if (!name)  { showAuthErr(err, 'Full name is required.'); return; }
+  if (!user)  { showAuthErr(err, 'Username is required.'); return; }
+  if (!email) { showAuthErr(err, 'Email address is required.'); return; }
+  if (user.length < 3) { showAuthErr(err, 'Username must be at least 3 characters.'); return; }
   if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { showAuthErr(err, 'Please enter a valid email address.'); return; }
-  if (pass.length < 4)  { showAuthErr(err, 'Password must be at least 4 characters.'); return; }
-  if (pass !== pass2)   { showAuthErr(err, 'Passwords do not match.'); return; }
 
   const regBtn = document.querySelector('#registerForm .btn-auth');
   if (regBtn) { regBtn.disabled = true; regBtn.textContent = 'Creating account…'; }
   showAuthErr(err, '');
 
-  const hash     = hashPass(pass);
   const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 
-  gasPost('register', { username: user, name, email, hash, provider: 'password' })
+  // No password from user — GAS generates and emails one
+  gasPost('register', { username: user, name, email, hash: '', provider: 'password' })
     .then(function(res) {
       if (regBtn) { regBtn.disabled = false; regBtn.textContent = 'Create Account'; }
       if (!res.ok) { showAuthErr(err, res.error || 'Registration failed.'); return; }
-      const u = res.user;
+      const u   = res.user;
       const cid = u.candidateId || res.candidateId || '';
       document.getElementById('regCandidateId').textContent = cid;
       document.getElementById('registerInline').style.display = 'block';
       document.getElementById('regSuccess').style.display = 'block';
-      // Show email notice below candidate ID
       var notice = document.getElementById('regEmailNotice');
-      if (notice) { notice.textContent = 'Login details sent to ' + email; notice.style.display = 'block'; }
+      if (notice) { notice.textContent = '✉ Login details sent to ' + email; notice.style.display = 'block'; }
       document.getElementById('regName').value  = '';
       document.getElementById('regUser').value  = '';
       document.getElementById('regEmail').value = '';
-      document.getElementById('regPass').value  = '';
-      document.getElementById('regPass2').value = '';
       currentUser = { username: u.username, name: u.name, initials: u.initials || initials,
                       candidateId: cid, email: email, isAdmin: false };
       _STORE['mca_session'] = currentUser;
-      setTimeout(function() { onLoginSuccess(); }, 3000);
+      setTimeout(function() { onLoginSuccess(); }, 3500);
     })
     .catch(function(e) {
       if (regBtn) { regBtn.disabled = false; regBtn.textContent = 'Create Account'; }
@@ -3340,7 +3336,7 @@ render();
 <!-- FOOTER -->
 <div class="site-footer">
   <div class="footer-copy">
-    Designed &amp; built by <span>Jason Crasto</span> · MCA Chief Mate Assessment Platform · &copy; 2025
+    Designed &amp; built by <span>Jason Crasto</span> · MCA NAVMASTER Assessment Platform · &copy; 2025
   </div>
   <div class="footer-copy" style="opacity:0.5;">
     All questions based on MCA / STCW syllabi. For study use only.
