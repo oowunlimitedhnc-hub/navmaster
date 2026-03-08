@@ -170,10 +170,16 @@ var QUIZ_URL        = 'quiz.html';
     var token  = params.get('access_token');
     if (token) { handleGoogleToken(token); return; }
   }
-  // Already logged in?
+  // Already logged in with a real account? Skip to quiz
   try {
     var s = localStorage.getItem('mca_session');
-    if (s) { var u = JSON.parse(s); if (u && u.username) { go(); return; } }
+    if (s) {
+      var u = JSON.parse(s);
+      // Only skip login if it's a real registered user (not guest)
+      if (u && u.username && u.username !== 'guest') { go(); return; }
+      // Otherwise clear stale/guest session
+      localStorage.removeItem('mca_session');
+    }
   } catch(_) {}
 })();
 

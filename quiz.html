@@ -1674,9 +1674,14 @@ function initAuth() {
     var raw = localStorage.getItem('mca_session');
     if (raw) {
       var u = JSON.parse(raw);
-      if (u && u.username) { currentUser = u; onLoginSuccess(); return; }
+      // Reject guest sessions — must be a real registered user
+      if (u && u.username && u.username !== 'guest') {
+        currentUser = u; onLoginSuccess(); return;
+      }
     }
   } catch(_) {}
+  // Clear any stale/guest session and redirect to login
+  try { localStorage.removeItem('mca_session'); } catch(_) {}
   window.location.replace('login.html');
 }
 
