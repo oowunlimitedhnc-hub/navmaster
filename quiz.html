@@ -1044,11 +1044,6 @@
         <div id="adminUsersList"></div>
       </div>
 
-      <!-- CHALLENGES PANEL -->
-      <div class="admin-panel active" id="apanel-challenges">
-        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;">Review and resolve candidate question challenges below.</div>
-        <div id="adminChallengesList"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div></div>
-      </div>
       <!-- EDIT QUESTIONS PANEL -->
       <div class="admin-panel" id="apanel-questions">
         <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;">
@@ -2312,10 +2307,9 @@ function _updateGasUrlStatus(url) {
 }
 
 function openScript() {
-  // Prefill saved GAS URL
-  var saved = getGasUrl();
+  // Prefill GAS URL
   var inp = document.getElementById('gasUrlInput');
-  if (inp) { inp.value = saved || ''; _updateGasUrlStatus(saved || ''); }
+  if (inp) { inp.value = GAS_URL; _updateGasUrlStatus(GAS_URL); }
   // Reset parse state
   _parsedQuestions = null; _parsedName = '';
   document.getElementById('scriptTA').value = '';
@@ -2363,7 +2357,7 @@ function parseScript() {
 
   // Build confirm summary
   var cat = scriptCat === 'navigation' ? '🧭 Navigation' : '⚖️ Stability';
-  var gasUrl = getGasUrl();
+  var gasUrl = GAS_URL;
   var driveStatus = gasUrl
     ? '<span style="color:var(--teal);">☁ Drive sync ready</span>'
     : '<span style="color:#f87171;">☁ Drive sync — URL not set</span>';
@@ -2487,7 +2481,7 @@ function _downloadJsonBackup() {
 
 /* ── Sync to Google Apps Script Web App ── */
 function _syncToGas(callback) {
-  var url = getGasUrl();
+  var url = GAS_URL;
   if (!url) { callback(false, 'Web App URL not set.'); return; }
 
   var payload = {
@@ -2987,7 +2981,7 @@ async function openAdminPanel() {
   openM('adminM');
 }
 
-async function switchAdminTab(tab) {
+window.switchAdminTab = async function switchAdminTab(tab) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
   const tabEl = document.getElementById('atab-' + tab);
@@ -3052,6 +3046,12 @@ function renderAdminQuestions() {
 }
 
 /* ── Kick off ── */
+// getGasUrl / setGasUrl — GAS URL is hardcoded, these are kept for compatibility
+function getGasUrl() { return GAS_URL; }
+function setGasUrl(url) { /* no-op — URL is hardcoded */ }
+window.getGasUrl = getGasUrl;
+window.setGasUrl = setGasUrl;
+
 window.addEventListener('DOMContentLoaded', function() {
   try {
     initAuth();
