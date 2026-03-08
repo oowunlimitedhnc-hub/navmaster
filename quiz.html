@@ -1452,32 +1452,37 @@
 
 <!-- CHALLENGE MODAL -->
 <div class="overlay" id="challengeM" onclick="overlayClick(event,'challengeM')">
-  <div class="modal">
+  <div class="modal" style="max-width:480px;">
     <div class="m-head">
-      <div class="m-head-txt"><h2 style="color:#f87171;">Challenge Question</h2><p>RAISE A DISCREPANCY</p></div>
-      <button class="m-x" onclick="closeM('challengeM')">&times;</button>
+      <div class="m-head-txt">
+        <h2 style="color:#f87171;">Challenge Question</h2>
+        <p>SUBMIT YOUR REVIEW</p>
+      </div>
+      <button class="m-x" onclick="window.closeM('challengeM')">&times;</button>
     </div>
     <div class="m-body">
-      <div id="challengeQText" style="font-size:0.88rem;color:var(--white);font-weight:600;margin-bottom:1.2rem;line-height:1.5;padding:0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--gold);"></div>
+      <div id="challengeQText" style="font-size:0.85rem;color:var(--white);font-weight:600;margin-bottom:1.2rem;line-height:1.5;padding:0.8rem 1rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:3px solid var(--gold);"></div>
       <div style="margin-bottom:1rem;">
-        <label style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:0.5rem;">Which answer(s) do you believe are correct?</label>
-        <div class="challenge-option-row" id="challengeOptsList"></div>
+        <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.08em;text-transform:uppercase;display:block;margin-bottom:0.5rem;">Which answer(s) do you believe are correct?</label>
+        <div id="challengeOptsList" style="display:flex;flex-direction:column;gap:0.4rem;"></div>
       </div>
       <div>
-        <label style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:0.5rem;">Your written review / reason <span style="color:#f87171;">*</span></label>
-        <textarea id="challengeReason" placeholder="Please explain clearly why you believe the marked answer is incorrect. Include any references, regulations or reasoning to support your challenge..." style="width:100%;min-height:110px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.8rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.84rem;resize:vertical;box-sizing:border-box;line-height:1.6;" oninput="document.getElementById('challengeCharCount').textContent=this.value.length"></textarea>
-        <div style="font-size:0.65rem;color:var(--muted);text-align:right;margin-top:0.3rem;font-family:'DM Mono',monospace;"><span id="challengeCharCount">0</span> characters</div>
+        <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.08em;text-transform:uppercase;display:block;margin-bottom:0.5rem;">Written Review <span style="color:#f87171;">*</span></label>
+        <textarea id="challengeReason" rows="4" placeholder="Explain why you believe the marked answer is incorrect. Include any references, regulations or reasoning to support your challenge..." style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.8rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.84rem;resize:vertical;box-sizing:border-box;line-height:1.6;outline:none;" oninput="document.getElementById('cCount').textContent=this.value.length"></textarea>
+        <div style="font-size:0.62rem;color:var(--muted);text-align:right;margin-top:0.25rem;font-family:'DM Mono',monospace;"><span id="cCount">0</span> characters</div>
       </div>
-      <div style="font-size:0.72rem;color:var(--muted);margin-top:0.8rem;padding:0.6rem;background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.2);border-radius:8px;line-height:1.5;">
-        &#9888; Your challenge will be reviewed by the assessment team. You will be notified of the outcome.
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:0.9rem;padding:0.6rem 0.8rem;background:rgba(212,168,67,0.05);border:1px solid rgba(212,168,67,0.18);border-radius:8px;line-height:1.6;">
+        &#9432; Your challenge will be reviewed by the assessment team. You will be notified of the outcome.
       </div>
-      <div class="auth-err" id="challengeErr" style="margin-top:0.5rem;"></div>
+      <div id="challengeErr" style="font-size:0.78rem;color:#f87171;min-height:1.2rem;margin-top:0.5rem;text-align:center;"></div>
     </div>
     <div class="m-foot">
-      <button class="btn-ghost-sm" onclick="closeM('challengeM')">Cancel</button>
-      <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;padding:0.55rem 1.5rem;font-size:0.84rem;" onclick="submitChallenge()">Submit Challenge</button>
+      <button class="btn-ghost-sm" onclick="window.closeM('challengeM')">Cancel</button>
+      <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;padding:0.55rem 1.5rem;font-size:0.84rem;" onclick="window.submitChallenge()">Confirm &amp; Submit</button>
     </div>
   </div>
+</div>
+</div>
 </div>
 
 
@@ -1514,7 +1519,7 @@ function initAuth() {
   window.location.replace('login.html');
 }
 
-function doLogout() {
+window.doLogout = function doLogout() {
   currentUser = null; adminUnlocked = false;
   try { localStorage.removeItem('mca_session'); } catch(_) {}
   window.location.replace('login.html');
@@ -1614,6 +1619,7 @@ async function saveRecord() {
     else if(btn){btn.disabled=false;btn.textContent='Save Record';}
   } catch(e){if(btn){btn.disabled=false;btn.textContent='Save Record';}}
 }
+window.saveRecord = saveRecord;
 
 async function renderRecords() {
   var body=document.getElementById('recordsBody');
@@ -1629,12 +1635,15 @@ async function renderRecords() {
       +records.map(function(r){var pct=Number(r.pct);var cls=pct>=80?'pass':pct>=60?'mid':'fail';var col=pct>=80?'var(--correct)':pct>=60?'var(--gold)':'var(--wrong)';return '<div class="record-item"><div class="record-row1"><div class="record-exam">'+r.exam+'</div><span class="record-score-badge '+cls+'">'+pct+'%</span></div><div class="record-row2"><div class="record-meta"><b>'+r.score+'/'+r.total+'</b> correct</div><div class="record-meta">'+r.date+' . '+r.time+'</div><div class="record-meta">'+r.verdict+'</div></div><div class="record-bar"><div class="record-bar-fill" style="width:'+pct+'%;background:'+col+';"></div></div></div>';}).join('');
   }catch(e){body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load records.</div>';}
 }
+window.renderRecords = renderRecords;
 
 async function confirmClearRecords() { await renderRecords(); }
+window.confirmClearRecords = confirmClearRecords;
 
 async function saveScriptToStore(name,category,questionsArr,importedBy) {
   try{var res=await gasPost('saveScript',{name:name,category:category,questionCount:questionsArr.length,questions:questionsArr,createdBy:importedBy||(currentUser?currentUser.username:'admin')});return res.ok?res.id:null;}catch(e){return null;}
 }
+window.saveScriptToStore = saveScriptToStore;
 
 async function renderScriptStore() {
   var list=document.getElementById('scriptStoreList'),badge=document.getElementById('scriptStoreBadge');
@@ -1648,8 +1657,10 @@ async function renderScriptStore() {
     list.innerHTML=scripts.map(function(s,i){var d=s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'';return '<div class="script-store-item"><div class="script-store-row1"><div class="script-store-name">'+s.name+'</div><span class="script-store-cat '+s.category+'">'+(s.category==='navigation'?'Navigation':'Stability')+'</span></div><div class="script-store-meta"><span><b>'+s.questionCount+'</b> questions</span><span>By <b>'+(s.createdBy||'admin')+'</b></span><span>'+d+'</span></div><div class="script-store-acts"><button class="btn-load" onclick="loadScriptFromStore('+i+')">Load into Quiz</button><button class="btn-ghost-sm" style="font-size:0.7rem;padding:0.3rem 0.7rem;" onclick="deleteScriptFromStore(\''+s.id+'\')">Delete</button></div></div>';}).join('');
   }catch(e){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load scripts.</div>';}
 }
+window.renderScriptStore = renderScriptStore;
 
 async function deleteScriptFromStore(id) { try{await gasPost('deleteScript',{id:id});}catch(e){} await renderScriptStore(); }
+window.deleteScriptFromStore = deleteScriptFromStore;
 
 async function renderAdminRecords() {
   var sEl=document.getElementById('adminRecordStats'),lEl=document.getElementById('adminRecordsList');
@@ -1663,6 +1674,7 @@ async function renderAdminRecords() {
     lEl.innerHTML='<table class="admin-users-table"><thead><tr><th>User</th><th>Exam</th><th>Score</th><th>Date</th><th>Verdict</th></tr></thead><tbody>'+records.map(function(r){var pct=Number(r.pct);var cls=pct>=80?'pass':pct>=60?'mid':'fail';return '<tr><td>'+(r.name||r.username)+'</td><td>'+r.exam+'</td><td class="score-cell '+cls+'">'+pct+'% ('+r.score+'/'+r.total+')</td><td style="font-size:0.75rem;">'+r.date+' '+r.time+'</td><td style="color:var(--muted);font-size:0.75rem;">'+r.verdict+'</td></tr>';}).join('')+'</tbody></table>';
   }catch(e){lEl.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Error.</div>';}
 }
+window.renderAdminRecords = renderAdminRecords;
 
 async function renderAdminUsers() {
   var el=document.getElementById('adminUsersList');if(!el)return;
@@ -1673,6 +1685,7 @@ async function renderAdminUsers() {
     el.innerHTML='<table class="admin-users-table"><thead><tr><th>Name</th><th>Email</th><th>Provider</th><th>Attempts</th><th>Best</th><th>Joined</th></tr></thead><tbody>'+users.map(function(u){var sum=uSum[u.username]||{attempts:0,best:0};var j=u.created?new Date(u.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'-';return '<tr><td style="font-weight:600;color:var(--white);">'+u.name+'</td><td style="font-size:0.72rem;color:var(--muted);">'+(u.email||'@'+u.username)+'</td><td>'+(u.provider||'password')+'</td><td>'+sum.attempts+'</td><td style="color:var(--gold);">'+(sum.best?sum.best+'%':'-')+'</td><td style="font-size:0.72rem;color:var(--muted);">'+j+'</td></tr>';}).join('')+'</tbody></table>';
   }catch(e){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Error.</div>';}
 }
+window.renderAdminUsers = renderAdminUsers;
 
 /* ====================================================
    CHALLENGE SYSTEM
@@ -1868,7 +1881,7 @@ function render() {
 window._myChallenges = {};
 var _challengeQi = null;
 
-function openChallenge(qi) {
+window.openChallenge = function openChallenge(qi) {
   if (!currentUser) return;
   _challengeQi = qi;
   var q = questions[qi];
@@ -1876,7 +1889,7 @@ function openChallenge(qi) {
   var sel = selected[qi] || new Set();
   document.getElementById('challengeOptsList').innerHTML = q.options.map(function(o,oi) {
     var chk = sel.has(oi);
-    return '<label class="challenge-opt'+(chk?' selected':'')+'" onclick="toggleChallengeOpt(this)">'
+    return '<label class="challenge-opt'+(chk?' selected':'')+'" onclick="window.toggleChallengeOpt(this)">'
       +'<input type="checkbox" value="'+oi+'"'+(chk?' checked':'')+'>'
       +'<span>'+o.text+'</span>'
       +(o.isCorrect?'<span style="margin-left:auto;font-size:0.65rem;color:var(--muted);flex-shrink:0;">[marked correct]</span>':'')
@@ -1887,7 +1900,7 @@ function openChallenge(qi) {
   openM('challengeM');
 }
 
-function toggleChallengeOpt(el) {
+window.toggleChallengeOpt = function toggleChallengeOpt(el) {
   el.classList.toggle('selected');
   var cb=el.querySelector('input[type=checkbox]');
   if(cb)cb.checked=!cb.checked;
@@ -1911,6 +1924,7 @@ async function submitChallenge() {
     else{errEl.textContent=res.error||'Could not submit. Try again.';}
   }catch(e){if(btn){btn.disabled=false;btn.textContent='Submit Challenge';}errEl.textContent='Network error.';}
 }
+window.submitChallenge = submitChallenge;
 
 async function renderAdminChallenges() {
   var el    = document.getElementById('adminChallengesList');
@@ -1959,11 +1973,13 @@ async function renderAdminChallenges() {
     el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading challenges.</div>';
   }
 }
+window.renderAdminChallenges = renderAdminChallenges;
 
 async function resolveChallenge(id,decision) {
   var note=prompt(decision==='accepted'?'Note (optional):':'Reason (optional):')||'';
   try{var res=await gasPost('resolveChallenge',{id:id,status:decision,resolvedNote:note});if(res.ok)await renderAdminChallenges();else alert('Error: '+(res.error||'Could not resolve.'));}catch(e){alert('Network error.');}
 }
+window.resolveChallenge = resolveChallenge;
 
   const wrap = document.getElementById('quizWrap');
   wrap.innerHTML = '';
@@ -2085,9 +2101,9 @@ function restart() {
 }
 
 /* ══════ MODALS ══════ */
-function openM(id) { document.getElementById(id).classList.add('open'); }
-function closeM(id) { document.getElementById(id).classList.remove('open'); }
-function overlayClick(e, id) { if (e.target===document.getElementById(id)) closeM(id); }
+window.openM = function openM(id) { document.getElementById(id).classList.add('open'); }
+window.closeM = function closeM(id) { document.getElementById(id).classList.remove('open'); }
+window.overlayClick = function overlayClick(e, id) { if (e.target===document.getElementById(id)) closeM(id); }
 document.addEventListener('keydown', e => {
   if (e.key==='Escape') ['addQM','scriptM','examsM','saveExamM','timerM','editQM','recordsM','adminM','saveConfirmM'].forEach(closeM);
 });
@@ -2418,7 +2434,7 @@ function _syncToGas(callback) {
 }
 
 /* ══════ EXAM LIBRARY ══════ */
-function openExams() { renderExams(); openM('examsM'); }
+window.openExams = function openExams() { renderExams(); openM('examsM'); }
 
 function switchCat(cat) {
   activeCategory = cat;
@@ -2843,7 +2859,7 @@ function initGoogleAuth() { /* redirect flow needs no init */ }
 /* ── Login (username or Candidate ID + password) ── */
 /* ── Admin Dropdown ── */
 /* ── User chip dropdown ── */
-function toggleUserDrop() {
+window.toggleUserDrop = function toggleUserDrop() {
   if (!currentUser) return;
   const drop = document.getElementById('userDrop');
   const isOpen = drop.classList.toggle('open');
@@ -2876,6 +2892,7 @@ async function openRecords() {
   await renderRecords();
   openM('recordsM');
 }
+window.openRecords = openRecords;
 
 
 
