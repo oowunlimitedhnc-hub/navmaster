@@ -1457,26 +1457,14 @@
 ════════════════════════════════════ */
 
 // ── Embedded data store (edit between the markers) ──
-var _STORE = /*DATA_START*/{}/*DATA_END*/;
 
 var _storeDirty = false;
 var _saveDebounce = null;
 
-function _storeGet(key) {
-  return key in _STORE ? _STORE[key] : null;
-}
-function _storeSet(key, val) {
-  _STORE[key] = val;
-  _scheduleSave();
-  return true;
-}
-function _storeDelete(key) {
-  delete _STORE[key];
-  _scheduleSave();
-}
-function _storeList(prefix) {
-  return Object.keys(_STORE).filter(k => k.startsWith(prefix));
-}
+
+
+
+
 
 function _scheduleSave() {
   _storeDirty = true;
@@ -1526,10 +1514,6 @@ function _showSaveNotice() {
 function _lsGet(key) { return _storeGet(key); }
 function _lsSet(key, val) { return _storeSet(key, val); }
 function _lsList(prefix) { return _storeList(prefix); }
-
-function storeGet(key, shared=false) { return Promise.resolve(_storeGet(key)); }
-function storeSet(key, val, shared=false) { return Promise.resolve(_storeSet(key, val)); }
-function storeList(prefix, shared=false) { return Promise.resolve(_storeList(prefix)); }
 
 /* ════════════════════════════════════════════════════════════
    GOOGLE APPS SCRIPT API
@@ -1764,18 +1748,6 @@ function showAuthErr(el, msg) {
 }
 
 function switchAuthTab() {}
-
-function doAdminMainLogin() {
-  var email = ((document.getElementById('adminMainEmail')||{}).value||'').trim().toLowerCase();
-  var pass  = ((document.getElementById('adminMainPass') ||{}).value||'');
-  var err   = document.getElementById('adminMainErr');
-  if (!email || !pass) { showAuthErr(err,'Enter email and password.'); return; }
-  if (email !== ADMIN_EMAIL.toLowerCase()) { showAuthErr(err,'Admin account not recognised.'); return; }
-  if (pass  !== ADMIN_PASSWORD) { showAuthErr(err,'Incorrect password.'); return; }
-  currentUser = { username:'admin', name:'Jason Crasto', email:ADMIN_EMAIL, initials:'JC', isAdmin:true };
-  try { localStorage.setItem('mca_session', JSON.stringify(currentUser)); } catch(_) {}
-  onLoginSuccess();
-}
 
 /* ====================================================
    GAS-BACKED DATA FUNCTIONS
@@ -2157,8 +2129,6 @@ var _parsedQuestions = null;
 var _parsedName = '';
 
 /* ── GAS URL management ── */
-function getGasUrl() { return _storeGet(GAS_URL_KEY) || ''; }
-
 function saveGasUrl() {
   var url = document.getElementById('gasUrlInput').value.trim();
   if (!url) return;
@@ -2811,201 +2781,13 @@ function parseJwt(token) {
 
 function initGoogleAuth() { /* redirect flow needs no init */ }
 
-function triggerGoogleLogin() {
-  if (!GOOGLE_CLIENT_ID) {
-    showAuthErr(document.getElementById('loginErr'), 'Google login not configured.');
-    return;
-  }
-  var btn = document.getElementById('googleSignInBtn');
-  if (btn) { btn.disabled = true; var t = btn.querySelector('.btn-google-text'); if(t) t.textContent = 'Redirecting…'; }
-
-  // redirect_uri must exactly match what is registered in Google Cloud Console
-  var redirectUri = window.location.origin + window.location.pathname;
-  var state = Math.random().toString(36).slice(2);
-  try { localStorage.setItem('mca_oauth_state', state); } catch(_) {}
-
-  var params = new URLSearchParams({
-    client_id:     GOOGLE_CLIENT_ID,
-    redirect_uri:  redirectUri,
-    response_type: 'token',
-    scope:         'openid email profile',
-    state:         state,
-    prompt:        'select_account',
-  });
-
-  window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
-}
-
 /* Checks for a Google token in the URL hash on page load. Returns true if handled. */
-function _checkGoogleCallback() {
-  var hash = window.location.hash;
-  if (!hash || !hash.includes('access_token')) return false;
-
-  // Immediately strip the token from the URL bar (prevents re-processing on refresh)
-  try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch(_) {}
-
-  var p = new URLSearchParams(hash.slice(1));
-  var accessToken = p.get('access_token');
-  var error = p.get('error');
-
-  if (error || !accessToken) {
-    document.getElementById('authGate').classList.remove('hidden');
-    document.getElementById('adminMainPanel').style.display = 'block';
-    setTimeout(function() {
-      showAuthErr(document.getElementById('loginErr'), 'Google sign-in was cancelled or failed.');
-    }, 100);
-    return true;
-  }
-
-  // Show gate briefly with a "Signing in..." state while profile is fetched
-  document.getElementById('authGate').classList.remove('hidden');
-  document.getElementById('adminMainPanel').style.display = 'none';
-  var btn = document.getElementById('googleSignInBtn');
-  if (btn) { btn.disabled = true; var t = btn.querySelector('.btn-google-text'); if(t) t.textContent = 'Signing in…'; }
-
-  _fetchGoogleUserInfo(accessToken);
-  return true;
-}
-
-function _googleBtnInner() {
-  return '<span class="btn-google-icon"><svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.169 6.656 3.58 9 3.58z"/></svg></span><span class="btn-google-text">Sign in with Google</span>';
-}
-
-function _fetchGoogleUserInfo(accessToken) {
-  var btn = document.getElementById('googleSignInBtn');
-  if (btn) { btn.disabled = true; var t2 = btn.querySelector('.btn-google-text'); if(t2) t2.textContent = 'Signing in…'; }
-  fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { 'Authorization': 'Bearer ' + accessToken }
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(info) {
-    var email    = info.email || '';
-    var name     = info.name || email.split('@')[0] || 'User';
-    var picture  = info.picture || '';
-    var initials = name.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2) || 'G';
-    var username = 'google_' + email.replace(/[^a-z0-9]/gi,'_').toLowerCase();
-    var isAdmin  = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-    // Register/update in Google Sheets
-    return gasPost('register', { username, name, email, picture, provider: 'google' })
-      .then(function(res) {
-        var u = (res.ok && res.user) ? res.user : { username, name, email, initials, isAdmin, candidateId: '' };
-        currentUser = { username: u.username, name: u.name, email: u.email || email,
-                        initials: u.initials || initials, picture: picture,
-                        isAdmin: u.isAdmin || isAdmin, candidateId: u.candidateId || '' };
-        _STORE['mca_session'] = currentUser;
-        if (btn) { btn.disabled = false; btn.innerHTML = _googleBtnInner(); }
-        onLoginSuccess();
-      });
-  })
-  .catch(function(e) {
-    if (btn) { btn.disabled = false; btn.innerHTML = _googleBtnInner(); }
-    showAuthErr(document.getElementById('loginErr'), 'Could not complete sign-in. Try again.');
-    console.error('Google userinfo error:', e);
-  });
-}
-
 /* ── Init ── */
 /* ── Sandbox / Drive detection ── */
-function detectSandbox() {
-  var sandboxed = false;
-  try {
-    // If in iframe (Drive preview), window.top !== window
-    if (window.self !== window.top) sandboxed = true;
-  } catch(e) { sandboxed = true; }
-  // Also check if we're on a googleusercontent / drive preview domain
-  try {
-    var host = window.location.hostname;
-    if (host.indexOf('googleusercontent') !== -1 || host.indexOf('google.com') !== -1) sandboxed = true;
-  } catch(e) {}
-  if (sandboxed) {
-    var notice = document.getElementById('driveNotice');
-    var guestBtn = document.getElementById('guestBtn');
-    if (notice) notice.style.display = 'block';
-    if (guestBtn) guestBtn.style.display = 'block';
-  }
-}
-
-function enterAsGuest() {
-  currentUser = { username: 'guest', name: 'Guest', initials: 'G', isAdmin: false };
-  onLoginSuccess();
-}
-
-
 /* ── Tab switch ── */
 
 /* ── Register ── */
-function doRegister() {
-  const name  = document.getElementById('regName').value.trim();
-  const user  = document.getElementById('regUser').value.trim().toLowerCase();
-  const pass  = document.getElementById('regPass').value;
-  const pass2 = document.getElementById('regPass2').value;
-  const err   = document.getElementById('registerErr');
-  if (!name || !user || !pass) { showAuthErr(err, 'All fields are required.'); return; }
-  if (user.length < 3) { showAuthErr(err, 'Username must be at least 3 characters.'); return; }
-  if (pass.length < 4) { showAuthErr(err, 'Password must be at least 4 characters.'); return; }
-  if (pass !== pass2)  { showAuthErr(err, 'Passwords do not match.'); return; }
-
-  const btn = document.querySelector('#registerInline .btn-auth') || document.getElementById('registerBtn');
-  if (btn) btn.disabled = true;
-  showAuthErr(err, '');
-
-  const hash = hashPass(pass);
-  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-
-  gasPost('register', { username: user, name, hash, provider: 'password' })
-    .then(function(res) {
-      if (btn) btn.disabled = false;
-      if (!res.ok) { showAuthErr(err, res.error || 'Registration failed.'); return; }
-      const u = res.user;
-      document.getElementById('regCandidateId').textContent = u.candidateId || res.candidateId || '';
-      document.getElementById('regSuccess').style.display = 'block';
-      document.getElementById('regName').value = '';
-      document.getElementById('regUser').value = '';
-      document.getElementById('regPass').value = '';
-      document.getElementById('regPass2').value = '';
-      currentUser = { username: u.username, name: u.name, initials: u.initials || initials,
-                      candidateId: u.candidateId || '', isAdmin: false };
-      _STORE['mca_session'] = currentUser;
-      setTimeout(function() { onLoginSuccess(); }, 2500);
-    })
-    .catch(function(e) {
-      if (btn) btn.disabled = false;
-      showAuthErr(err, 'Network error. Please try again.');
-      console.error('Register error:', e);
-    });
-}
-
 /* ── Login (username or Candidate ID + password) ── */
-function doLogin() {
-  var inputEl = document.getElementById('loginUser');
-  var passEl  = document.getElementById('loginPass');
-  var err     = document.getElementById('loginErr');
-  var input   = inputEl ? inputEl.value.trim() : '';
-  var pass    = passEl  ? passEl.value : '';
-  if (!input || !pass) { showAuthErr(err, 'Please enter your username or Candidate ID and password.'); return; }
-
-  var loginBtn = document.querySelector('.btn-auth[onclick="doLogin()"]');
-  if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Signing in…'; }
-
-  var hash = hashPass(pass);
-  gasPost('login', { username: input.trim(), hash: hash, provider: 'password' })
-    .then(function(res) {
-      if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Sign In'; }
-      if (!res.ok) { showAuthErr(err, res.error || 'Login failed.'); return; }
-      var u = res.user;
-      currentUser = { username: u.username, name: u.name, initials: u.initials,
-                      candidateId: u.candidateId || '', email: u.email || '',
-                      isAdmin: u.isAdmin || false };
-      _STORE['mca_session'] = currentUser;
-      onLoginSuccess();
-    })
-    .catch(function(e) {
-      if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Sign In'; }
-      showAuthErr(err, 'Network error. Please try again.');
-      console.error('doLogin error:', e);
-    });
-}
-
 /* ── Admin Dropdown ── */
 /* ── User chip dropdown ── */
 function toggleUserDrop() {
@@ -3041,7 +2823,7 @@ function doAdminLogin() {
     if (email !== ADMIN_EMAIL.toLowerCase()) { showAuthErr(err, 'Admin account not recognised.'); return; }
     if (pass !== ADMIN_PASSWORD) { showAuthErr(err, 'Incorrect admin password.'); return; }
     currentUser = { username: 'admin', name: 'Jason Crasto', email: ADMIN_EMAIL, initials: 'JC', isAdmin: true };
-    _STORE['mca_session'] = currentUser;
+    // session stored in localStorage
     onLoginSuccess();
   } catch(e) {
     var err2 = document.getElementById('adminErr');
