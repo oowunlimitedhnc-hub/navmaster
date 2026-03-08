@@ -2912,9 +2912,13 @@ function renderAdminQuestions() {
 }
 
 /* ── Kick off ── */
-/* Pre-seed removed — users stored in Google Sheets */
-
-initAuth();
+window.addEventListener('DOMContentLoaded', function() {
+  try {
+    initAuth();
+  } catch(e) {
+    alert('initAuth error: ' + e.message);
+  }
+});
 </script>
 </body>
 </html>
