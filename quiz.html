@@ -1588,7 +1588,7 @@ function storeList(prefix, shared=false) { return Promise.resolve(_storeList(pre
    All data (users, records, scripts) lives in Google Sheets.
    Local _STORE is still used for exams/questions in-session.
 ════════════════════════════════════════════════════════════ */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxsLmWUGGSOs9uLZpyt8AszQlNMXRc3S2o54eTv8wGFYJ-n5fN0C-GjV2xt1VYOEyjL/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwwJRWnvQuSNjI-JLzZg5LX5IdNT8ABhmaXPsjy4NuAzKvYUwAOQxvRV6Kn5s7VPVtR/exec';
 
 function gasPost(action, data) {
   return fetch(GAS_URL, {
