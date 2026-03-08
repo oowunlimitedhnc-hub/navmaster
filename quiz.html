@@ -1108,14 +1108,14 @@
   </div>
   <div style="margin-right:auto;"></div>
   <div class="topbar-divider"></div>
-  <button class="tbtn tbtn-ghost" onclick="openExams()">
+  <button class="tbtn tbtn-ghost" onclick="window.openExams()">
     Library <span class="badge" id="examBadge">0</span>
   </button>
   <button class="tbtn tbtn-teal" id="addQBtn" onclick="openAddQ()" style="display:none;">+ Add Question</button>
-  <button class="tbtn tbtn-gold" id="scriptInputBtn" onclick="openScript()" style="display:none;">Script Input</button>
+  <button class="tbtn tbtn-gold" id="scriptInputBtn" onclick="window.openScript()" style="display:none;">Script Input</button>
   <div class="topbar-divider"></div>
-  <button class="tbtn tbtn-ghost" onclick="openRecords()">Records</button>
-  <div class="user-chip" id="userChip" onclick="toggleUserDrop()">
+  <button class="tbtn tbtn-ghost" onclick="window.openRecords()">My Records</button>
+  <div class="user-chip" id="userChip" onclick="window.toggleUserDrop()">
     <div class="user-chip-av" id="userChipAv">?</div>
     <div style="display:flex;flex-direction:column;gap:1px;">
       <div class="user-chip-name" id="userChipName">Guest</div>
@@ -1485,6 +1485,12 @@ var GAS_URL          = 'https://script.google.com/macros/s/AKfycbwwJRWnvQuSNjI-J
 var GOOGLE_CLIENT_ID = '27579080548-rlk6j8p0gomhaf59rqq513mjaio92o64.apps.googleusercontent.com';
 var ADMIN_EMAIL      = 'backitup.crst2@gmail.com';
 var ADMIN_PASSWORD   = 'JasCra@2328';
+
+// Compatibility stubs
+function getGasUrl() { return GAS_URL; }
+function setGasUrl(url) {}
+window.getGasUrl = getGasUrl;
+window.setGasUrl = setGasUrl;
 
 /* ====================================================
    API
@@ -3046,12 +3052,6 @@ function renderAdminQuestions() {
 }
 
 /* ── Kick off ── */
-// getGasUrl / setGasUrl — GAS URL is hardcoded, these are kept for compatibility
-function getGasUrl() { return GAS_URL; }
-function setGasUrl(url) { /* no-op — URL is hardcoded */ }
-window.getGasUrl = getGasUrl;
-window.setGasUrl = setGasUrl;
-
 window.addEventListener('DOMContentLoaded', function() {
   try {
     initAuth();
