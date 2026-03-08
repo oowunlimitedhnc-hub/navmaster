@@ -144,6 +144,7 @@
       <div class="label">Account Created ✓</div>
       <div class="cid" id="regCid">CM-0000</div>
       <div class="note" id="regNote"></div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:0.6rem;line-height:1.5;">Check your email for your password,<br>then <a href="#" onclick="showTab('signin');return false;" style="color:var(--teal);text-decoration:underline;">Sign In</a> using your Candidate ID.</div>
     </div>
   </div>
 
@@ -278,8 +279,7 @@ function doRegister() {
       document.getElementById('regName').value  = '';
       document.getElementById('regUser').value  = '';
       document.getElementById('regEmail').value = '';
-      saveSession(u);
-      setTimeout(go, 3500);
+      // Do NOT auto-redirect — candidate must login manually using emailed credentials
     })
     .catch(function() {
       btn.disabled = false; btn.textContent = 'Create Account';
