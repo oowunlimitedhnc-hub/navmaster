@@ -877,7 +877,16 @@
   .script-store-cat.stability  { background: rgba(212,168,67,0.12); color: var(--gold); border: 1px solid rgba(212,168,67,0.3); }
   .script-store-meta { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
   .script-store-meta b { color: var(--text); }
-  .script-store-acts { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .script-store-acts { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items:center; }
+  .btn-publish { padding:0.28rem 0.75rem; font-size:0.7rem; font-family:'DM Mono',monospace; border-radius:6px; border:1px solid rgba(45,212,191,0.4); background:transparent; color:var(--teal); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .btn-publish:hover { background:rgba(45,212,191,0.1); }
+  .btn-publish.published { background:rgba(45,212,191,0.15); border-color:var(--teal); color:var(--teal); }
+  .btn-publish.unpublished { border-color:rgba(212,168,67,0.4); color:var(--gold); }
+  .btn-publish.unpublished:hover { background:rgba(212,168,67,0.1); }
+  .btn-del-script { padding:0.28rem 0.65rem; font-size:0.7rem; font-family:'DM Mono',monospace; border-radius:6px; border:1px solid rgba(239,68,68,0.3); background:transparent; color:#f87171; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .btn-del-script:hover { background:rgba(239,68,68,0.1); border-color:#f87171; }
+  .published-badge { display:inline-flex; align-items:center; gap:0.3rem; font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.07em; padding:0.15rem 0.5rem; border-radius:20px; background:rgba(45,212,191,0.12); color:var(--teal); border:1px solid rgba(45,212,191,0.25); }
+  .draft-badge { display:inline-flex; align-items:center; gap:0.3rem; font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.07em; padding:0.15rem 0.5rem; border-radius:20px; background:rgba(212,168,67,0.1); color:var(--gold); border:1px solid rgba(212,168,67,0.2); }
 
   .admin-users-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
   .admin-users-table th {
@@ -1660,13 +1669,75 @@ async function renderScriptStore() {
     if(badge)badge.textContent=scripts.length;
     if(!scripts.length){list.innerHTML='<div style="text-align:center;padding:3rem;color:var(--muted);">No scripts saved yet. Use Script Input to import question sets.</div>';return;}
     window._adminScripts=scripts;
-    list.innerHTML=scripts.map(function(s,i){var d=s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'';return '<div class="script-store-item"><div class="script-store-row1"><div class="script-store-name">'+s.name+'</div><span class="script-store-cat '+s.category+'">'+(s.category==='navigation'?'Navigation':'Stability')+'</span></div><div class="script-store-meta"><span><b>'+s.questionCount+'</b> questions</span><span>By <b>'+(s.createdBy||'admin')+'</b></span><span>'+d+'</span></div><div class="script-store-acts"><button class="btn-load" onclick="loadScriptFromStore('+i+')">Load into Quiz</button><button class="btn-ghost-sm" style="font-size:0.7rem;padding:0.3rem 0.7rem;" onclick="deleteScriptFromStore(\''+s.id+'\')">Delete</button></div></div>';}).join('');
+    window._adminScripts = scripts;
+    list.innerHTML = scripts.map(function(s, i) {
+      var d          = s.created ? new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '';
+      var isPublished = s.published === '1' || s.published === true;
+      var sid        = String(s.id);
+      var badge      = isPublished
+        ? '<span class="published-badge">&#9679; Published</span>'
+        : '<span class="draft-badge">&#9675; Draft</span>';
+      var pubBtn     = isPublished
+        ? '<button class="btn-publish published" onclick="window.togglePublishScript(' + JSON.stringify(sid) + ', false)">&#10003; Published</button>'
+        : '<button class="btn-publish unpublished" onclick="window.togglePublishScript(' + JSON.stringify(sid) + ', true)">&#8679; Publish</button>';
+      return '<div class="script-store-item" id="ssi-' + sid + '">'
+        + '<div class="script-store-row1">'
+        + '<div class="script-store-name">' + s.name + '</div>'
+        + '<span class="script-store-cat ' + s.category + '">' + (s.category === 'navigation' ? 'Navigation' : 'Stability') + '</span>'
+        + badge
+        + '</div>'
+        + '<div class="script-store-meta">'
+        + '<span><b>' + s.questionCount + '</b> questions</span>'
+        + '<span>By <b>' + (s.createdBy || 'admin') + '</b></span>'
+        + '<span>' + d + '</span>'
+        + '</div>'
+        + '<div class="script-store-acts">'
+        + '<button class="btn-load" onclick="loadScriptFromStore(' + i + ')">&#9654; Load into Quiz</button>'
+        + pubBtn
+        + '<button class="btn-del-script" onclick="window.confirmDeleteScript(' + JSON.stringify(sid) + ', ' + JSON.stringify(s.name) + ')">&#128465; Delete</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
   }catch(e){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load scripts.</div>';}
 }
 window.renderScriptStore = renderScriptStore;
 
-async function deleteScriptFromStore(id) { try{await gasPost('deleteScript',{id:id});}catch(e){} await renderScriptStore(); }
+async function deleteScriptFromStore(id) {
+  try { await gasPost('deleteScript', { id: id }); } catch(e) {}
+  await renderScriptStore();
+}
 window.deleteScriptFromStore = deleteScriptFromStore;
+
+async function confirmDeleteScript(id, name) {
+  if (!confirm('Delete "' + name + '"?\nThis cannot be undone.')) return;
+  var el = document.getElementById('ssi-' + id);
+  if (el) { el.style.opacity = '0.4'; el.style.pointerEvents = 'none'; }
+  try { await gasPost('deleteScript', { id: id }); } catch(e) {}
+  // Also remove from local exams array
+  exams = exams.filter(function(e) { return e.name !== name; });
+  _storeSet('exams', exams);
+  document.getElementById('examBadge').textContent = exams.length;
+  await renderScriptStore();
+}
+window.confirmDeleteScript = confirmDeleteScript;
+
+async function togglePublishScript(id, publish) {
+  var btn = document.querySelector('#ssi-' + id + ' .btn-publish');
+  if (btn) { btn.disabled = true; btn.textContent = publish ? 'Publishing…' : 'Unpublishing…'; }
+  try {
+    var res = await gasPost('publishScript', { id: id, published: publish });
+    if (res.ok) {
+      await renderScriptStore();
+    } else {
+      alert('Could not update: ' + (res.error || 'Unknown error'));
+      await renderScriptStore();
+    }
+  } catch(e) {
+    alert('Network error.');
+    await renderScriptStore();
+  }
+}
+window.togglePublishScript = togglePublishScript;
 
 async function renderAdminRecords() {
   var sEl=document.getElementById('adminRecordStats'),lEl=document.getElementById('adminRecordsList');
@@ -1872,7 +1943,7 @@ var scriptCat = 'navigation';
     gasGet('getScripts', {}).then(function(res) {
       if (!res.ok || !res.scripts) return;
       var changed = false;
-      res.scripts.forEach(function(s) {
+      visibleScripts.forEach(function(s) {
         var exists = exams.some(function(e) { return e.name === s.name; });
         if (!exists && s.questions) {
           var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
@@ -2578,7 +2649,7 @@ window.openExams = async function openExams() {
     var res = await gasGet('getScripts', {});
     if (res.ok && res.scripts && res.scripts.length) {
       // Merge GAS scripts into local exams array (avoid duplicates by name)
-      res.scripts.forEach(function(s) {
+      visibleScripts.forEach(function(s) {
         var exists = exams.some(function(e) { return e.name === s.name; });
         if (!exists && s.questions) {
           var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
