@@ -1114,7 +1114,7 @@
   <button class="tbtn tbtn-teal" id="addQBtn" onclick="openAddQ()" style="display:none;">+ Add Question</button>
   <button class="tbtn tbtn-gold" id="scriptInputBtn" onclick="window.openScript()" style="display:none;">Script Input</button>
   <div class="topbar-divider"></div>
-  <button class="tbtn tbtn-ghost" onclick="window.openRecords()">My Records</button>
+  <button class="tbtn tbtn-ghost" id="recordsOrChallengesBtn" onclick="window.openRecordsOrChallenges()">My Records</button>
   <div class="user-chip" id="userChip" onclick="window.toggleUserDrop()">
     <div class="user-chip-av" id="userChipAv">?</div>
     <div style="display:flex;flex-direction:column;gap:1px;">
@@ -1587,6 +1587,7 @@ function onLoginSuccess() {
     if (adminPanel) adminPanel.style.display = 'none';
   }
   render();
+  updateRecordsBtnLabel();
 }
 
 function showAuthErr(el, msg) {
@@ -2975,6 +2976,33 @@ async function openRecords() {
   openM('recordsM');
 }
 window.openRecords = openRecords;
+
+function openRecordsOrChallenges() {
+  if (currentUser && currentUser.isAdmin) {
+    // Open admin panel directly on Challenges tab
+    window.openAdmin();
+    setTimeout(function() { window.switchAdminTab('challenges'); }, 300);
+  } else {
+    window.openRecords();
+  }
+}
+window.openRecordsOrChallenges = openRecordsOrChallenges;
+
+// Update button label based on user role
+function updateRecordsBtnLabel() {
+  var btn = document.getElementById('recordsOrChallengesBtn');
+  if (!btn) return;
+  if (currentUser && currentUser.isAdmin) {
+    btn.textContent = 'Pending Challenges';
+    btn.style.borderColor = 'rgba(239,68,68,0.4)';
+    btn.style.color = '#f87171';
+  } else {
+    btn.textContent = 'My Records';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  }
+}
+window.updateRecordsBtnLabel = updateRecordsBtnLabel;
 
 
 
