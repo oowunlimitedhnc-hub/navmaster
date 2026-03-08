@@ -2616,7 +2616,6 @@ function showErr(el, msg) {
 const ADMIN_PIN = '1234';
 let pinBuffer = '';
 let editTargetQi = null;
-let adminUnlocked = false;
 
 function openEditQ(qi) {
   editTargetQi = qi;
@@ -2795,7 +2794,6 @@ function saveEditQ(qi) {
    Google OAuth + username/password fallback
    Admin: backitup.crst@gmail.com / JasCra@123
 ══════════════════════════════════════ */
-let currentUser = null;
 
 
 /* ── Storage helpers (window.storage with localStorage fallback) ── */
