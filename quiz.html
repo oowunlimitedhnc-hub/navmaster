@@ -1269,17 +1269,7 @@
       <button class="m-x" onclick="closeM('scriptM')">✕</button>
     </div>
     <div class="m-body">
-      <!-- GAS Web App URL config -->
-      <div id="gasUrlRow" style="margin-bottom:0.9rem;">
-        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;">
-          <label class="flabel" style="margin:0;">APPS SCRIPT WEB APP URL</label>
-          <span id="gasUrlStatus" style="font-family:'DM Mono',monospace;font-size:0.55rem;padding:0.12rem 0.5rem;border-radius:20px;"></span>
-        </div>
-        <div style="display:flex;gap:0.5rem;">
-          <input type="text" id="gasUrlInput" placeholder="Paste your Web App URL here…" style="flex:1;font-size:0.75rem;" oninput="onGasUrlChange()">
-          <button class="btn-ghost-sm" onclick="saveGasUrl()" style="white-space:nowrap;">Save URL</button>
-        </div>
-      </div>
+
       <div class="frow">
         <label class="flabel">CATEGORY</label>
         <div style="display:flex;gap:0.5rem;">
@@ -1495,7 +1485,8 @@
 
 
 <script>
-var GAS_URL          = 'https://script.google.com/macros/s/AKfycbwwJRWnvQuSNjI-JLzZg5LX5IdNT8ABhmaXPsjy4NuAzKvYUwAOQxvRV6Kn5s7VPVtR/exec';
+var GAS_URL_DEFAULT  = 'https://script.google.com/macros/s/AKfycbwwJRWnvQuSNjI-JLzZg5LX5IdNT8ABhmaXPsjy4NuAzKvYUwAOQxvRV6Kn5s7VPVtR/exec';
+var GAS_URL          = (function(){ try { return localStorage.getItem('navmaster_gas_url') || GAS_URL_DEFAULT; } catch(_){ return GAS_URL_DEFAULT; } })();
 var GOOGLE_CLIENT_ID = '27579080548-rlk6j8p0gomhaf59rqq513mjaio92o64.apps.googleusercontent.com';
 var ADMIN_EMAIL      = 'backitup.crst2@gmail.com';
 var ADMIN_PASSWORD   = 'JasCra@2328';
@@ -1785,7 +1776,8 @@ function _lsList(prefix) { return _storeList(prefix); }
 ════════════════════════════════════════════════════════════ */
 
 function gasPost(action, data) {
-  return fetch(GAS_URL, {
+  var url = (typeof GAS_URL !== 'undefined' ? GAS_URL : GAS_URL_DEFAULT);
+  return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(Object.assign({ action: action }, data))
@@ -1796,7 +1788,8 @@ function gasGet(action, params) {
   var qs = Object.keys(params || {}).map(function(k) {
     return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
   }).join('&');
-  return fetch(GAS_URL + '?action=' + action + (qs ? '&' + qs : ''))
+  var _url = (typeof GAS_URL !== 'undefined' ? GAS_URL : GAS_URL_DEFAULT);
+  return fetch(_url + '?action=' + action + (qs ? '&' + qs : ''))
     .then(function(r) { return r.json(); });
 }
 
@@ -2302,10 +2295,34 @@ var _parsedName = '';
 /* ── GAS URL management ── */
 function saveGasUrl() {
   var url = document.getElementById('gasUrlInput').value.trim();
-  if (!url) return;
-  /* GAS URL is hardcoded */
+  var btn = document.querySelector('#gasUrlRow .btn-ghost-sm');
+  if (!url || !url.includes('script.google.com')) {
+    _updateGasUrlStatus(url);
+    if (btn) { btn.textContent = 'Invalid URL'; btn.style.color = '#f87171'; setTimeout(function(){ btn.textContent = 'Save URL'; btn.style.color = ''; }, 2000); }
+    return;
+  }
+  // Save to localStorage and update live variable
+  try { localStorage.setItem('navmaster_gas_url', url); } catch(_) {}
+  GAS_URL = url;
   _updateGasUrlStatus(url);
+  if (btn) {
+    btn.textContent = '✓ Saved';
+    btn.style.color = 'var(--teal)';
+    setTimeout(function(){ btn.textContent = 'Save URL'; btn.style.color = ''; }, 2500);
+  }
 }
+window.saveGasUrl = saveGasUrl;
+
+function resetGasUrl() {
+  try { localStorage.removeItem('navmaster_gas_url'); } catch(_) {}
+  GAS_URL = GAS_URL_DEFAULT;
+  var inp = document.getElementById('gasUrlInput');
+  if (inp) { inp.value = GAS_URL; _updateGasUrlStatus(GAS_URL); }
+  var resetBtn = document.getElementById('gasUrlResetBtn');
+  if (resetBtn) resetBtn.style.display = 'none';
+}
+window.resetGasUrl = resetGasUrl;
+
 
 function onGasUrlChange() {
   var url = document.getElementById('gasUrlInput').value.trim();
@@ -2331,6 +2348,9 @@ function openScript() {
   // Prefill GAS URL
   var inp = document.getElementById('gasUrlInput');
   if (inp) { inp.value = GAS_URL; _updateGasUrlStatus(GAS_URL); }
+  // Show reset button if URL has been customised
+  var resetBtn = document.getElementById('gasUrlResetBtn');
+  if (resetBtn) resetBtn.style.display = (GAS_URL !== GAS_URL_DEFAULT) ? '' : 'none';
   // Reset parse state
   _parsedQuestions = null; _parsedName = '';
   document.getElementById('scriptTA').value = '';
