@@ -986,7 +986,22 @@
   .challenge-opt:hover { border-color: var(--gold); background: rgba(212,168,67,0.05); }
   .challenge-opt.selected { border-color: var(--gold); background: rgba(212,168,67,0.1); color: var(--white); }
   .challenge-opt input[type=checkbox] { accent-color: var(--gold); width: 15px; height: 15px; flex-shrink: 0; }
-  .challenge-card {
+  
+/* ── My Challenges (candidate view) ── */
+.my-challenge-card { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; padding:1rem 1.1rem; margin-bottom:0.8rem; }
+.my-challenge-card.accepted { border-color:rgba(45,212,191,0.35); background:rgba(45,212,191,0.04); }
+.my-challenge-card.rejected { border-color:rgba(239,68,68,0.25); background:rgba(239,68,68,0.03); }
+.my-challenge-card.pending  { border-color:rgba(212,168,67,0.3);  background:rgba(212,168,67,0.03); }
+.my-challenge-status { display:inline-block; font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.2rem 0.6rem; border-radius:20px; font-weight:700; margin-bottom:0.6rem; }
+.my-challenge-status.pending  { background:rgba(212,168,67,0.15); color:var(--gold); }
+.my-challenge-status.accepted { background:rgba(45,212,191,0.15); color:var(--teal); }
+.my-challenge-status.rejected { background:rgba(239,68,68,0.15);  color:#f87171; }
+.my-challenge-q    { font-size:0.82rem; color:var(--white); font-weight:600; line-height:1.5; margin-bottom:0.4rem; }
+.my-challenge-reason { font-size:0.75rem; color:var(--muted); font-style:italic; margin-bottom:0.5rem; line-height:1.4; }
+.my-challenge-note { font-size:0.75rem; color:var(--text); background:rgba(255,255,255,0.04); border-left:3px solid var(--teal); border-radius:0 6px 6px 0; padding:0.5rem 0.7rem; margin-top:0.5rem; line-height:1.5; }
+.my-challenge-note.rejected { border-color:#f87171; }
+
+.challenge-card {
     background: var(--card); border: 1px solid var(--border); border-radius: 10px;
     padding: 1rem 1.2rem; margin-bottom: 0.8rem;
   }
@@ -1066,6 +1081,23 @@
   </div>
 </div>
 
+
+<!-- ══ MODAL: MY CHALLENGES ══ -->
+<div class="overlay" id="myChallengesM" onclick="overlayClick(event,'myChallengesM')">
+  <div class="modal" style="max-width:600px;">
+    <div class="m-head">
+      <div class="m-head-txt"><h2>My Challenges</h2><p>SUBMITTED QUESTION DISPUTES</p></div>
+      <button class="m-x" onclick="closeM('myChallengesM')">&times;</button>
+    </div>
+    <div class="m-body" style="padding:0;">
+      <div id="myChallengesList" style="padding:1rem;"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn-ghost-sm" onclick="closeM('myChallengesM')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL: MY RECORDS ══ -->
 <div class="overlay" id="recordsM" onclick="overlayClick(event,'recordsM')">
   <div class="modal">
@@ -1115,6 +1147,7 @@
   <button class="tbtn tbtn-gold" id="scriptInputBtn" onclick="window.openScript()" style="display:none;">Script Input</button>
   <div class="topbar-divider"></div>
   <button class="tbtn tbtn-ghost" id="recordsOrChallengesBtn" onclick="window.openRecordsOrChallenges()">My Records</button>
+  <button class="tbtn tbtn-ghost" id="myChallengesBtn" onclick="window.openMyChallenges()" style="display:none;border-color:rgba(239,68,68,0.35);color:#f87171;">My Challenges</button>
   <div class="user-chip" id="userChip" onclick="window.toggleUserDrop()">
     <div class="user-chip-av" id="userChipAv">?</div>
     <div style="display:flex;flex-direction:column;gap:1px;">
@@ -1143,26 +1176,7 @@
 </div>
 
 <!-- ADMIN LOGIN PANEL (main page) -->
-<div id="adminMainPanel" style="display:none;">
-  <div class="admin-main-wrap">
-    <div class="admin-main-box" id="adminMainLogin">
-      <div class="admin-main-icon">⚙</div>
-      <div class="admin-main-title">Administrator Access</div>
-      <div class="admin-main-fields">
-        <input type="email" id="adminMainEmail" class="admin-main-input" placeholder="Admin email" autocomplete="email">
-        <input type="password" id="adminMainPass" class="admin-main-input" placeholder="Password" autocomplete="off">
-      </div>
-      <button class="admin-main-btn" onclick="doAdminMainLogin()">Sign In as Admin</button>
-      <div class="auth-err" id="adminMainErr" style="margin-top:0.6rem;font-size:0.68rem;text-align:center;"></div>
-    </div>
-    <div class="admin-main-box admin-main-logged" id="adminMainLogged" style="display:none;">
-      <div class="admin-main-icon" style="color:var(--gold);">⚙</div>
-      <div class="admin-main-title" style="color:var(--gold);">Jason Crasto</div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Administrator · Signed In</div>
-
-    </div>
-  </div>
-</div>
+<div id="adminMainPanel" style="display:none;"></div>
 
 <!-- ACTIVE EXAM BANNER -->
 <div class="exam-banner" id="examBanner">
@@ -2977,6 +2991,52 @@ async function openRecords() {
 }
 window.openRecords = openRecords;
 
+async function openMyChallenges() {
+  if (!currentUser) return;
+  openM('myChallengesM');
+  var el = document.getElementById('myChallengesList');
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading your challenges…</div>';
+  try {
+    var res  = await gasGet('getChallenges', { username: currentUser.username });
+    var list = (res.ok && res.challenges) ? res.challenges : [];
+    // Filter to only this candidate's challenges
+    list = list.filter(function(c) { return c.username === currentUser.username; });
+    if (!list.length) {
+      el.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted);">You have not submitted any challenges yet.</div>';
+      return;
+    }
+    var html = '';
+    list.forEach(function(c) {
+      var st     = c.status || 'pending';
+      var hasNote = st !== 'pending' && c.resolvedNote;
+      html += '<div class="my-challenge-card ' + st + '">';
+      html += '<div class="my-challenge-status ' + st + '">';
+      if (st === 'pending')  html += '&#9679; Awaiting Review';
+      if (st === 'accepted') html += '&#10003; Accepted';
+      if (st === 'rejected') html += '&#10007; Rejected';
+      html += '</div>';
+      html += '<div style="font-family:monospace;font-size:0.6rem;color:var(--muted);margin-bottom:0.4rem;">';
+      html += 'Q' + (Number(c.questionIndex) + 1) + ' &middot; ' + (c.exam || 'Quiz') + ' &middot; ' + (c.date || '') + '</div>';
+      html += '<div class="my-challenge-q">' + (c.questionText || '') + '</div>';
+      html += '<div class="my-challenge-reason">Your review: &ldquo;' + (c.reason || '') + '&rdquo;</div>';
+      if (hasNote) {
+        html += '<div class="my-challenge-note ' + st + '">';
+        html += '<strong style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;">Admin Response:</strong><br>';
+        html += c.resolvedNote;
+        html += '</div>';
+      } else if (st === 'pending') {
+        html += '<div style="font-size:0.68rem;color:var(--muted);margin-top:0.4rem;">&#128336; Under review by the assessment team.</div>';
+      }
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading challenges. Please try again.</div>';
+  }
+}
+window.openMyChallenges = openMyChallenges;
+
+
 function openRecordsOrChallenges() {
   if (currentUser && currentUser.isAdmin) {
     openM('adminM');
@@ -2989,16 +3049,19 @@ window.openRecordsOrChallenges = openRecordsOrChallenges;
 
 // Update button label based on user role
 function updateRecordsBtnLabel() {
-  var btn = document.getElementById('recordsOrChallengesBtn');
+  var btn   = document.getElementById('recordsOrChallengesBtn');
+  var chBtn = document.getElementById('myChallengesBtn');
   if (!btn) return;
   if (currentUser && currentUser.isAdmin) {
     btn.textContent = 'Pending Challenges';
     btn.style.borderColor = 'rgba(239,68,68,0.4)';
     btn.style.color = '#f87171';
+    if (chBtn) chBtn.style.display = 'none';
   } else {
     btn.textContent = 'My Records';
     btn.style.borderColor = '';
     btn.style.color = '';
+    if (chBtn) chBtn.style.display = '';
   }
 }
 window.updateRecordsBtnLabel = updateRecordsBtnLabel;
