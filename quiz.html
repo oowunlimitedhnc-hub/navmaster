@@ -1003,113 +1003,17 @@
 <body>
 
 <!-- AUTH GATE -->
-<div class="auth-gate" id="authGate">
-  <div class="auth-box">
-    <div class="auth-logo">
-      <svg class="auth-logo-img" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="32" cy="32" r="10" stroke="#D4A843" stroke-width="2.5" fill="none"/>
-        <circle cx="32" cy="32" r="3.5" fill="#D4A843"/>
-        <line x1="32" y1="22" x2="32" y2="6"  stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
-        <line x1="32" y1="42" x2="32" y2="58" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
-        <line x1="22" y1="32" x2="6"  y2="32" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
-        <line x1="42" y1="32" x2="58" y2="32" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
-        <line x1="25" y1="25" x2="14" y2="14" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
-        <line x1="39" y1="39" x2="50" y2="50" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
-        <line x1="39" y1="25" x2="50" y2="14" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
-        <line x1="25" y1="39" x2="14" y2="50" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/>
-        <circle cx="32" cy="32" r="28" stroke="#D4A843" stroke-width="2" fill="none" opacity="0.35"/>
-        <circle cx="32" cy="6"  r="2.5" fill="#D4A843"/>
-        <circle cx="32" cy="58" r="2.5" fill="#D4A843"/>
-        <circle cx="6"  cy="32" r="2.5" fill="#D4A843"/>
-        <circle cx="58" cy="32" r="2.5" fill="#D4A843"/>
-        <circle cx="14" cy="14" r="2.5" fill="#D4A843"/>
-        <circle cx="50" cy="50" r="2.5" fill="#D4A843"/>
-        <circle cx="50" cy="14" r="2.5" fill="#D4A843"/>
-        <circle cx="14" cy="50" r="2.5" fill="#D4A843"/>
-      </svg>
-      <div class="auth-logo-title">NAVMASTER</div>
-      <div class="auth-logo-sub">MCA Modernized Assessment · UK</div>
-    </div>
-
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Candidate</button>
-      <button class="auth-tab" id="tabAdmin" onclick="switchAuthTab('admin')" style="color:var(--gold);">Admin</button>
-    </div>
-
-    <!-- CANDIDATE LOGIN -->
-    <div id="loginForm">
-      <!-- Google Sign-In -->
-      <button class="btn-google" id="googleSignInBtn" onclick="triggerGoogleLogin()">
-        <span class="btn-google-icon">
-          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-            <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/>
-            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.169 6.656 3.58 9 3.58z"/>
-          </svg>
-        </span>
-        <span class="btn-google-text">Sign in with Google</span>
-      </button>
-      <div id="googleBtnContainer" style="display:none; margin-bottom:1rem;"></div>
-
-      <div class="auth-or">OR</div>
-
-      <div class="auth-field">
-        <label>Username or Candidate ID</label>
-        <input type="text" id="loginUser" placeholder="Username or CM-XXXX" autocomplete="username">
-      </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password">
-      </div>
-      <button class="btn-auth" onclick="doLogin()">Sign In</button>
-      <div class="auth-err" id="loginErr"></div>
-      <div id="googleBtnFallback" style="display:none;"></div>
-      <!-- Hidden — used only to surface Candidate ID after Google auto-registration -->
-      <div id="registerInline" style="display:none;">
-        <div id="regSuccess" style="display:none;margin-top:1rem;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.3);border-radius:10px;padding:0.9rem;text-align:center;">
-          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--teal);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.4rem;">Account Created</div>
-          <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.6rem;">Your Candidate ID — save this, you can use it to login</div>
-          <div id="regCandidateId" style="font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--white);letter-spacing:0.15em;background:rgba(255,255,255,0.06);border-radius:8px;padding:0.5rem 1rem;display:inline-block;"></div>
-        </div>
-      </div>
-    </div>
-
-
-    <div class="auth-footer" id="authFooterText">Sign in with Google for the fastest access.<br>Records saved per account across sessions.</div>
-
-    <!-- ADMIN LOGIN FORM -->
-    <div id="adminForm" style="display:none;">
-      <div id="adminLoginFields">
-        <div style="text-align:center;margin-bottom:1.4rem;">
-          <div style="font-size:2rem;margin-bottom:0.3rem;">⚙</div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--gold);letter-spacing:0.14em;text-transform:uppercase;">Restricted Access</div>
-        </div>
-        <div class="auth-field">
-          <label>Admin Email</label>
-          <input type="email" id="adminEmail" placeholder="Enter admin email" autocomplete="email">
-        </div>
-        <div class="auth-field">
-          <label>Password</label>
-          <input type="password" id="adminPass" placeholder="Enter admin password" autocomplete="off">
-        </div>
-        <button class="btn-auth" style="background:linear-gradient(135deg,var(--gold),#b8882e);color:#0b1120;font-weight:800;" onclick="doAdminLogin()">Access Admin Panel</button>
-        <div class="auth-err" id="adminErr"></div>
-      </div>
-      <div id="adminLoggedIn" style="display:none;text-align:center;padding:0.5rem 0;">
-        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#b8882e);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:900;color:#0b1120;font-size:1rem;margin:0 auto 0.8rem;">JC</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--white);margin-bottom:0.2rem;">Jason Crasto</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:1.2rem;">Administrator</div>
-        <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);" onclick="doLogout()">Sign Out</button>
-      </div>
-    </div>
-    <div id="driveNotice" style="display:none;margin-top:0.8rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:0.75rem;font-family:'DM Mono',monospace;font-size:0.6rem;color:#fca5a5;letter-spacing:0.04em;line-height:1.6;text-align:center;">
-      ⚠ OPEN THIS FILE IN YOUR BROWSER<br>
-      <span style="opacity:0.7;">Google Drive previews block login.<br>Download → double-click to open in Chrome/Edge.</span>
-    </div>
-    <button id="guestBtn" onclick="enterAsGuest()" style="display:none;width:100%;margin-top:0.8rem;padding:0.55rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;">Continue as Guest (view only)</button>
-    <div style="text-align:center;margin-top:1rem;font-family:'DM Mono',monospace;font-size:0.52rem;color:rgba(255,255,255,0.2);letter-spacing:0.1em;">BUILT BY JASON CRASTO · SOUTH SHIELDS MARINE SCHOOL</div>
+<!-- Auth gate not used on quiz.html — session checked via localStorage, redirects to login.html if missing -->
+<div id="authGate" class="hidden" style="display:none;">
+  <div id="loginForm" style="display:none;"></div>
+  <div id="registerInline" style="display:none;"><div id="regSuccess" style="display:none;"></div></div>
+  <div id="adminForm" style="display:none;visibility:hidden;">
+    <div id="adminLoginFields" style="display:none;"></div>
+    <div id="adminLoggedIn" style="display:none;"></div>
   </div>
+  <div id="authFooterText" style="display:none;"></div>
+  <div id="driveNotice" style="display:none;"></div>
+  <button id="guestBtn" style="display:none;"></button>
 </div>
 
 <!-- ══ MODAL: ADMIN PANEL ══ -->
@@ -2785,23 +2689,7 @@ function initAuth() {
 }
 
 /* ── Tab switch ── */
-function switchAuthTab(tab) {
-  document.getElementById('loginForm').style.display = tab !== 'admin' ? '' : 'none';
-  document.getElementById('adminForm').style.display = tab === 'admin' ? '' : 'none';
-  document.getElementById('tabLogin').classList.toggle('active', tab !== 'admin');
-  const tabAdmin = document.getElementById('tabAdmin');
-  if (tabAdmin) tabAdmin.classList.toggle('active', tab === 'admin');
-  // Show logout view if already logged in as admin
-  if (tab === 'admin') {
-    const isAdmin = currentUser && currentUser.isAdmin;
-    document.getElementById('adminLoginFields').style.display = isAdmin ? 'none' : '';
-    document.getElementById('adminLoggedIn').style.display   = isAdmin ? '' : 'none';
-  }
-  const footer = document.getElementById('authFooterText');
-  if (footer) footer.textContent = tab === 'admin'
-    ? 'Admin access restricted to authorised personnel only.'
-    : 'Sign in with Google for fastest access. Records saved per account.';
-}
+function switchAuthTab(tab) { /* not used on quiz.html */ }
 
 /* ── Register ── */
 function doRegister() {
@@ -2933,28 +2821,10 @@ function doAdminLogin() {
 
 /* ── Logout ── */
 function doLogout() {
-  if (GOOGLE_CLIENT_ID && currentUser?.email) {
-    try { google.accounts.id.revoke(currentUser.email, ()=>{}); } catch(_) {}
-  }
   currentUser = null;
   adminUnlocked = false;
   delete _STORE['mca_session'];
   try { localStorage.removeItem('mca_session'); } catch(_) {}
-  document.getElementById('userChip').classList.remove('user-chip-admin','user-chip-google');
-  document.getElementById('userChipAv').textContent = '?';
-  document.getElementById('userChipName').textContent = 'Guest';
-  document.getElementById('userDrop').classList.remove('open');
-  document.getElementById('scriptInputBtn').style.display = 'none';
-  document.getElementById('addQBtn').style.display = 'none';
-  // Reset admin main panel to login state
-  document.getElementById('adminMainPanel').style.display = 'block';
-  document.getElementById('adminMainLogin').style.display = 'block';
-  document.getElementById('adminMainLogged').style.display = 'none';
-  document.getElementById('adminMainEmail').value = '';
-  document.getElementById('adminMainPass').value = '';
-  // Reset auth gate admin form
-  document.getElementById('adminLoginFields').style.display = '';
-  document.getElementById('adminLoggedIn').style.display = 'none';
   window.location.replace('login.html');
 }
 
