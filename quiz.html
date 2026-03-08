@@ -1450,6 +1450,31 @@
   </div>
 </div>
 
+<!-- CHALLENGE MODAL -->
+<div class="overlay" id="challengeM" onclick="overlayClick(event,'challengeM')">
+  <div class="modal">
+    <div class="m-head">
+      <div class="m-head-txt"><h2 style="color:#f87171;">Challenge Question</h2><p>RAISE A DISCREPANCY</p></div>
+      <button class="m-x" onclick="closeM('challengeM')">X</button>
+    </div>
+    <div class="m-body">
+      <div id="challengeQText" style="font-size:0.88rem;color:var(--white);font-weight:600;margin-bottom:1rem;line-height:1.5;padding:0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--gold);"></div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;">Select the answer(s) you believe are correct:</div>
+      <div class="challenge-option-row" id="challengeOptsList"></div>
+      <div style="margin-top:1rem;">
+        <label style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Your reason</label>
+        <textarea id="challengeReason" placeholder="Explain why you believe the marked answer is incorrect..." style="width:100%;min-height:80px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.7rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+      <div class="auth-err" id="challengeErr" style="margin-top:0.5rem;"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn-ghost-sm" onclick="closeM('challengeM')">Cancel</button>
+      <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;padding:0.55rem 1.4rem;font-size:0.82rem;" onclick="submitChallenge()">Submit Challenge</button>
+    </div>
+  </div>
+</div>
+
+
 <script>
 /* ══════ DATA ══════ */
 /* ════════════════════════════════════
@@ -1628,31 +1653,7 @@ resetState();
 /* ══════ RENDER ══════ */
 function render() {
 
-<!-- CHALLENGE MODAL -->
-<div class="overlay" id="challengeM" onclick="overlayClick(event,'challengeM')">
-  <div class="modal">
-    <div class="m-head">
-      <div class="m-head-txt"><h2 style="color:#f87171;">Challenge Question</h2><p>RAISE A DISCREPANCY</p></div>
-      <button class="m-x" onclick="closeM('challengeM')">X</button>
-    </div>
-    <div class="m-body">
-      <div id="challengeQText" style="font-size:0.88rem;color:var(--white);font-weight:600;margin-bottom:1rem;line-height:1.5;padding:0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--gold);"></div>
-      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;">Select the answer(s) you believe are correct:</div>
-      <div class="challenge-option-row" id="challengeOptsList"></div>
-      <div style="margin-top:1rem;">
-        <label style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Your reason</label>
-        <textarea id="challengeReason" placeholder="Explain why you believe the marked answer is incorrect..." style="width:100%;min-height:80px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.7rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:vertical;box-sizing:border-box;"></textarea>
-      </div>
-      <div class="auth-err" id="challengeErr" style="margin-top:0.5rem;"></div>
-    </div>
-    <div class="m-foot">
-      <button class="btn-ghost-sm" onclick="closeM('challengeM')">Cancel</button>
-      <button class="btn-auth" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;padding:0.55rem 1.4rem;font-size:0.82rem;" onclick="submitChallenge()">Submit Challenge</button>
-    </div>
-  </div>
-</div>
 
-<script>
 /* ====================================================
    NAVMASTER CONFIG
 ==================================================== */
@@ -1819,7 +1820,7 @@ async function renderScriptStore() {
     if(badge)badge.textContent=scripts.length;
     if(!scripts.length){list.innerHTML='<div style="text-align:center;padding:3rem;color:var(--muted);">No scripts saved yet. Use Script Input to import question sets.</div>';return;}
     window._adminScripts=scripts;
-    list.innerHTML=scripts.map(function(s,i){var d=s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'';return '<div class="script-store-item"><div class="script-store-row1"><div class="script-store-name">'+s.name+'</div><span class="script-store-cat '+s.category+'">'+(s.category==='navigation'?'Navigation':'Stability')+'</span></div><div class="script-store-meta"><span><b>'+s.questionCount+'</b> questions</span><span>By <b>'+(s.createdBy||'admin')+'</b></span><span>'+d+'</span></div><div class="script-store-acts"><button class="btn-load" onclick="loadScriptFromStore('+i+')">Load into Quiz</button><button class="btn-ghost-sm" style="font-size:0.7rem;padding:0.3rem 0.7rem;" onclick="deleteScriptFromStore(''+s.id+'')">Delete</button></div></div>';}).join('');
+    list.innerHTML=scripts.map(function(s,i){var d=s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'';return '<div class="script-store-item"><div class="script-store-row1"><div class="script-store-name">'+s.name+'</div><span class="script-store-cat '+s.category+'">'+(s.category==='navigation'?'Navigation':'Stability')+'</span></div><div class="script-store-meta"><span><b>'+s.questionCount+'</b> questions</span><span>By <b>'+(s.createdBy||'admin')+'</b></span><span>'+d+'</span></div><div class="script-store-acts"><button class="btn-load" onclick="loadScriptFromStore('+i+')">Load into Quiz</button><button class="btn-ghost-sm" style="font-size:0.7rem;padding:0.3rem 0.7rem;" onclick="deleteScriptFromStore(\''+s.id+'\')">Delete</button></div></div>';}).join('');
   }catch(e){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Could not load scripts.</div>';}
 }
 
@@ -1899,21 +1900,51 @@ async function submitChallenge() {
 }
 
 async function renderAdminChallenges() {
-  var el=document.getElementById('adminChallengesList'),badge=document.getElementById('challengeBadge');
-  if(!el)return;
-  el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div>';
+  var el    = document.getElementById('adminChallengesList');
+  var badge = document.getElementById('challengeBadge');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div>';
   try {
-    var res=await gasGet('getChallenges',{});var list=(res.ok&&res.challenges)?res.challenges:[];
-    var pending=list.filter(function(c){return c.status==='pending';}).length;
-    if(badge)badge.textContent=pending;
-    if(!list.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--muted);">No challenges yet.</div>';return;}
-    el.innerHTML=list.map(function(c){
-      var resolved=c.status!=='pending';
-      var cur=typeof c.currentAnswers==='string'?JSON.parse(c.currentAnswers||'[]'):(c.currentAnswers||[]);
-      var disp=typeof c.disputedAnswers==='string'?JSON.parse(c.disputedAnswers||'[]'):(c.disputedAnswers||[]);
-      return '<div class="challenge-card'+(resolved?' resolved':'')+'"><div class="challenge-meta">#'+c.id+' &middot; <strong style="color:var(--white);">'+(c.candidateName||c.username)+'</strong>'+(c.candidateId?' ('+c.candidateId+')':'')+' &middot; '+(c.exam||'')+' &middot; '+(c.date||'')+'<span class="challenge-status-badge '+c.status+'">'+c.status+'</span></div><div class="challenge-q">Q'+(Number(c.questionIndex)+1)+': '+c.questionText+'</div><div class="challenge-reason">"'+c.reason+'"</div><div class="challenge-opts-list"><div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.08em;">Marked correct:</div>'+cur.map(function(a){return '<span>'+a+'</span>';}).join('')+'<div style="font-size:0.65rem;color:#f87171;margin:0.4rem 0 0.2rem;text-transform:uppercase;letter-spacing:0.08em;">Candidate believes:</div>'+disp.map(function(a){return '<span class="disputed">'+a+'</span>';}).join('')+'</div>'+(!resolved?'<div class="challenge-acts"><button class="btn-ghost-sm" style="color:var(--teal);border-color:rgba(45,212,191,0.3);" onclick="resolveChallenge(''+c.id+'','accepted')">Accept</button><button class="btn-ghost-sm" style="color:#f87171;border-color:rgba(239,68,68,0.3);" onclick="resolveChallenge(''+c.id+'','rejected')">Reject</button></div>':'<div style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Resolved: '+(c.resolvedNote||'')+'</div>')+'</div>';
-    }).join('');
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading challenges.</div>';}
+    var res     = await gasGet('getChallenges', {});
+    var list    = (res.ok && res.challenges) ? res.challenges : [];
+    var pending = list.filter(function(c){ return c.status === 'pending'; }).length;
+    if (badge) badge.textContent = pending;
+    if (!list.length) {
+      el.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted);">No challenges yet.</div>';
+      return;
+    }
+    var html = '';
+    list.forEach(function(c) {
+      var resolved = c.status !== 'pending';
+      var cur  = typeof c.currentAnswers  === 'string' ? JSON.parse(c.currentAnswers  || '[]') : (c.currentAnswers  || []);
+      var disp = typeof c.disputedAnswers === 'string' ? JSON.parse(c.disputedAnswers || '[]') : (c.disputedAnswers || []);
+      var cid  = String(c.id);
+      html += '<div class="challenge-card' + (resolved ? ' resolved' : '') + '">';
+      html += '<div class="challenge-meta">#' + c.id + ' &middot; <strong style="color:var(--white);">' + (c.candidateName || c.username) + '</strong>';
+      html += (c.candidateId ? ' (' + c.candidateId + ')' : '') + ' &middot; ' + (c.exam || '') + ' &middot; ' + (c.date || '');
+      html += '<span class="challenge-status-badge ' + c.status + '">' + c.status + '</span></div>';
+      html += '<div class="challenge-q">Q' + (Number(c.questionIndex) + 1) + ': ' + c.questionText + '</div>';
+      html += '<div class="challenge-reason">' + c.reason + '</div>';
+      html += '<div class="challenge-opts-list">';
+      html += '<div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase;">Marked correct:</div>';
+      cur.forEach(function(a)  { html += '<span>' + a + '</span>'; });
+      html += '<div style="font-size:0.65rem;color:#f87171;margin:0.4rem 0 0.2rem;text-transform:uppercase;">Candidate believes:</div>';
+      disp.forEach(function(a) { html += '<span class="disputed">' + a + '</span>'; });
+      html += '</div>';
+      if (!resolved) {
+        html += '<div class="challenge-acts">';
+        html += '<button class="btn-ghost-sm" style="color:var(--teal);border-color:rgba(45,212,191,0.3);" onclick="resolveChallenge(this.dataset.id,\'accepted\')" data-id="' + cid + '">Accept</button>';
+        html += '<button class="btn-ghost-sm" style="color:#f87171;border-color:rgba(239,68,68,0.3);" onclick="resolveChallenge(this.dataset.id,\'rejected\')" data-id="' + cid + '">Reject</button>';
+        html += '</div>';
+      } else {
+        html += '<div style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Resolved: ' + (c.resolvedNote || '') + '</div>';
+      }
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading challenges.</div>';
+  }
 }
 
 async function resolveChallenge(id,decision) {
