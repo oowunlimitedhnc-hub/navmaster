@@ -2585,20 +2585,43 @@ function _saveToLibraryInternal() {
   var exists = exams.some(function(e) { return e.name === _parsedName; });
   if (!exists) {
     var importedBy = currentUser ? currentUser.name : 'Guest';
-    var newExam = { name:_parsedName, desc:'Saved from Script Input', category:scriptCat,
-      questions:JSON.parse(JSON.stringify(_parsedQuestions)), noShuffle:true,
-      published:false, date:date };
-    exams.push(newExam);
-    _storeSet('exams', exams);
-    // Save to GAS and store the returned id for publish/delete
-    saveScriptToStore(_parsedName, scriptCat, _parsedQuestions, importedBy).then(function(res) {
-      if (res && res.id) {
-        var idx = exams.findIndex ? exams.findIndex(function(e){ return e.name === _parsedName; })
-                  : (function(){ for(var j=0;j<exams.length;j++) if(exams[j].name===_parsedName) return j; return -1; })();
-        if (idx !== -1) { exams[idx].id = res.id; _storeSet('exams', exams); }
+    // Check GAS for existing script with same name first
+    gasGet('getScripts', {}).then(function(res) {
+      var existsInGas = res.ok && res.scripts && res.scripts.some(function(s){ return s.name === _parsedName && s.category === scriptCat; });
+      if (existsInGas) {
+        var overwrite = confirm('"' + _parsedName + '" already exists in the ' + scriptCat + ' library.\n\nOverwrite it with the new version?');
+        if (!overwrite) return;
+        // Delete existing before re-saving
+        var existing = res.scripts.find(function(s){ return s.name === _parsedName && s.category === scriptCat; });
+        if (existing) gasPost('deleteScript', { id: existing.id }).catch(function(){});
       }
-    }).catch(function(){});
-    document.getElementById('examBadge').textContent = (currentUser && currentUser.isAdmin) ? exams.length : exams.filter(function(e){ return e.published===true||e.published==='1'; }).length;
+      var newExam = { name:_parsedName, desc:'Saved from Script Input', category:scriptCat,
+        questions:JSON.parse(JSON.stringify(_parsedQuestions)), noShuffle:true,
+        published:false, date:date };
+      saveScriptToStore(_parsedName, scriptCat, _parsedQuestions, importedBy).then(function(r) {
+        if (r && r.id) newExam.id = r.id;
+        // Rebuild exams from GAS to stay in sync
+        gasGet('getScripts', {}).then(function(r2) {
+          if (r2.ok && r2.scripts) {
+            exams = r2.scripts.map(function(s) {
+              var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
+              return { id:s.id, name:s.name, desc:'By '+(s.createdBy||'admin'), category:s.category||'navigation',
+                questions:qs||[], noShuffle:true, fromGas:true,
+                published:(s.published==='1'||s.published===true||s.published===1),
+                date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'' };
+            });
+            _storeSet('exams', exams);
+            document.getElementById('examBadge').textContent = exams.length;
+          }
+        }).catch(function(){});
+      }).catch(function(){});
+    }).catch(function() {
+      // Offline — just add locally
+      exams.push({ name:_parsedName, desc:'Saved from Script Input', category:scriptCat,
+        questions:JSON.parse(JSON.stringify(_parsedQuestions)), noShuffle:true, published:false, date:date });
+      _storeSet('exams', exams);
+      document.getElementById('examBadge').textContent = exams.length;
+    });
   }
 }
 
@@ -2653,28 +2676,30 @@ function _syncToGas(callback) {
 /* ══════ EXAM LIBRARY ══════ */
 window.openExams = async function openExams() {
   openM('examsM');
-  // Always pull latest scripts from GAS so admin-saved scripts appear for candidates
   try {
     var res = await gasGet('getScripts', {});
-    if (res.ok && res.scripts && res.scripts.length) {
-      // Merge GAS scripts into local exams array (avoid duplicates by name)
-      visibleScripts.forEach(function(s) {
-        var exists = exams.some(function(e) { return e.name === s.name; });
-        if (!exists && s.questions) {
-          var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
-          exams.push({
-            name:      s.name,
-            desc:      'By ' + (s.createdBy || 'admin'),
-            category:  s.category || 'navigation',
-            questions: qs,
-            date:      s.created ? new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : ''
-          });
-        }
+    if (res.ok && res.scripts) {
+      var isAdmin = currentUser && currentUser.isAdmin;
+      // Full replace — rebuild exams from GAS so published status is always current
+      exams = res.scripts.map(function(s) {
+        var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
+        return {
+          id:        s.id,
+          name:      s.name,
+          desc:      'By ' + (s.createdBy || 'admin'),
+          category:  s.category || 'navigation',
+          questions: qs || [],
+          noShuffle: true,
+          fromGas:   true,
+          published: (s.published === '1' || s.published === true || s.published === 1),
+          date:      s.created ? new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : ''
+        };
       });
-      document.getElementById('examBadge').textContent = (currentUser && currentUser.isAdmin) ? exams.length : exams.filter(function(e){ return e.published === true || e.published === '1' || e.published === 1; }).length;
       _storeSet('exams', exams);
+      var count = isAdmin ? exams.length : exams.filter(function(e){ return e.published; }).length;
+      document.getElementById('examBadge').textContent = count;
     }
-  } catch(e) { /* offline — use cached exams */ }
+  } catch(e) { /* offline — keep cached */ }
   renderExams();
 }
 
