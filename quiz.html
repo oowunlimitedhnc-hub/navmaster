@@ -1501,6 +1501,10 @@ var ADMIN_EMAIL      = 'backitup.crst2@gmail.com';
 var ADMIN_PASSWORD   = 'JasCra@2328';
 
 // Compatibility stubs
+
+// Helper — GAS returns published as '1' or '0' string
+function isPub(ex) { return ex.published === '1' || ex.published === 1 || ex.published === true; }
+
 function getGasUrl() { return GAS_URL; }
 function setGasUrl(url) {}
 window.getGasUrl = getGasUrl;
@@ -1947,7 +1951,7 @@ var scriptCat = 'navigation';
         return { id:s.id, name:s.name, desc:'By '+(s.createdBy||'admin'),
           category:s.category||'navigation', questions:qs||[],
           fromGas:true, noShuffle:true,
-          published:(s.published==='1'||s.published===true||s.published===1),
+          published:isPub(s),
           date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''};
       });
       _storeSet('exams', exams);
@@ -2606,7 +2610,7 @@ function _saveToLibraryInternal() {
               var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
               return { id:s.id, name:s.name, desc:'By '+(s.createdBy||'admin'), category:s.category||'navigation',
                 questions:qs||[], noShuffle:true, fromGas:true,
-                published:(s.published==='1'||s.published===true||s.published===1),
+                published:isPub(s),
                 date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'' };
             });
             _storeSet('exams', exams);
@@ -2693,7 +2697,7 @@ window.openExams = async function openExams() {
           questions: qs || [],
           noShuffle: true,
           fromGas:   true,
-          published: (s.published === '1' || s.published === true || s.published === 1),
+          published: (isPub(s)),
           date:      s.created ? new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : ''
         };
       });
@@ -2722,14 +2726,14 @@ function renderExams() {
   var visible = exams.map(function(ex, i) { return Object.assign({}, ex, {_i:i}); }).filter(function(ex) {
     if ((ex.category || 'navigation') !== activeCategory) return false;
     if (isAdmin) return true;  // admin sees all
-    return ex.published === true || ex.published === '1' || ex.published === 1;
+    return isPub(ex);
   });
 
   // Update tab counts (admin sees all, candidates see only published)
   ['navigation','stability'].forEach(function(cat) {
     var n = exams.filter(function(e) {
       if ((e.category||'navigation') !== cat) return false;
-      return isAdmin ? true : (e.published === true || e.published === '1' || e.published === 1);
+      return isAdmin ? true : (isPub(e));
     }).length;
     var el = document.getElementById('catCount-' + cat);
     if (el) el.textContent = n;
@@ -2749,7 +2753,7 @@ function renderExams() {
   var html  = '<div class="cat-section-label">' + label + '</div><div class="exam-list">';
 
   visible.forEach(function(ex) {
-    var isPub = ex.published === true || ex.published === '1' || ex.published === 1;
+    var isPub = isPub(ex);
     html += '<div class="exam-item" id="exam-item-' + ex._i + '">';
     html += '<div class="exam-icon">' + icon + '</div>';
     html += '<div class="exam-info">';
@@ -2791,7 +2795,7 @@ function deleteExam(i) {
   exams.splice(i, 1);
   _storeSet('exams', exams);
   document.getElementById('examBadge').textContent = exams.filter(function(e){
-    return currentUser && currentUser.isAdmin ? true : (e.published === true || e.published === '1');
+    return currentUser && currentUser.isAdmin ? true : (isPub(e));
   }).length;
   renderExams();
 }
@@ -2826,7 +2830,7 @@ async function toggleExamPublish(i, publish) {
         var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
         return { id:s.id, name:s.name, desc:'By '+(s.createdBy||'admin'), category:s.category||'navigation',
           questions:qs||[], noShuffle:true, fromGas:true,
-          published:(s.published==='1'||s.published===true||s.published===1),
+          published:isPub(s),
           date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''};
       });
       _storeSet('exams', exams);
