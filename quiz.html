@@ -1247,6 +1247,25 @@
       <button class="m-x" onclick="closeM('addQM')">✕</button>
     </div>
     <div class="m-body">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+        <div class="frow" style="margin:0;">
+          <label class="flabel">CATEGORY</label>
+          <select id="aqCategory" onchange="window.aqCatChanged()" style="width:100%;background:var(--surface2);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:var(--text);padding:0.55rem 0.75rem;font-family:'DM Mono',monospace;font-size:0.78rem;">
+            <option value="navigation">🧭 Navigation</option>
+            <option value="stability">⚖️ Stability</option>
+          </select>
+        </div>
+        <div class="frow" style="margin:0;">
+          <label class="flabel">ADD TO EXAM</label>
+          <select id="aqExam" style="width:100%;background:var(--surface2);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:var(--text);padding:0.55rem 0.75rem;font-family:'DM Mono',monospace;font-size:0.78rem;">
+            <option value="__current__">— current quiz session —</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="aqExamNote" style="font-size:0.72rem;color:var(--teal);font-family:'DM Mono',monospace;margin-bottom:0.75rem;padding:0.4rem 0.6rem;background:rgba(45,212,191,0.06);border-radius:6px;display:none;"></div>
+
       <div class="frow">
         <label class="flabel">QUESTION TEXT</label>
         <textarea id="aqTitle" rows="3" placeholder="Enter the question…"></textarea>
@@ -1264,7 +1283,7 @@
     </div>
     <div class="m-foot">
       <button class="btn-ghost-sm" onclick="closeM('addQM')">Cancel</button>
-      <button class="btn-primary" onclick="saveQuestion()">Add to Quiz</button>
+      <button class="btn-primary" id="aqSaveBtn" onclick="saveQuestion()">Add to Quiz</button>
     </div>
   </div>
 </div>
@@ -2298,10 +2317,59 @@ function openAddQ() {
   document.getElementById('aqTitle').value = '';
   document.getElementById('aqExpl').value = '';
   document.getElementById('aqErr').classList.remove('show');
-  const b = document.getElementById('optBuilder'); b.innerHTML = '';
-  for (let i=0;i<4;i++) addOptRow();
+  var b = document.getElementById('optBuilder'); b.innerHTML = '';
+  for (var i=0;i<4;i++) addOptRow();
+  // Populate exam dropdown from GAS
+  window._aqExamsCache = null;
+  var catSel = document.getElementById('aqCategory');
+  catSel.value = 'navigation';
+  window.aqPopulateExams('navigation');
   openM('addQM');
 }
+
+window.aqCatChanged = function() {
+  var cat = document.getElementById('aqCategory').value;
+  window.aqPopulateExams(cat);
+};
+
+window.aqPopulateExams = async function(cat) {
+  var sel = document.getElementById('aqExam');
+  var note = document.getElementById('aqExamNote');
+  sel.innerHTML = '<option value="__current__">— current quiz session only —</option>';
+  note.style.display = 'none';
+  try {
+    var res = window._aqExamsCache || await gasGet('getScripts', {});
+    window._aqExamsCache = res;
+    if (res.ok && res.scripts) {
+      var filtered = res.scripts.filter(function(s){ return (s.category||'navigation') === cat; });
+      filtered.forEach(function(s) {
+        var opt = document.createElement('option');
+        opt.value = s.id;
+        opt.dataset.name = s.name;
+        opt.textContent = s.name + ' (' + (s.questionCount||'?') + ' Qs)';
+        sel.appendChild(opt);
+      });
+      if (filtered.length === 0) {
+        var opt = document.createElement('option');
+        opt.disabled = true;
+        opt.textContent = 'No ' + cat + ' exams in library yet';
+        sel.appendChild(opt);
+      }
+    }
+  } catch(e) { /* offline */ }
+  sel.onchange = function() {
+    var v = sel.value;
+    if (v === '__current__') {
+      note.style.display = 'none';
+      document.getElementById('aqSaveBtn').textContent = 'Add to Quiz';
+    } else {
+      var name = sel.options[sel.selectedIndex].dataset.name || v;
+      note.textContent = '✦ Question will be added to "' + name + '" and saved to the library.';
+      note.style.display = 'block';
+      document.getElementById('aqSaveBtn').textContent = 'Save to Exam';
+    }
+  };
+};
 
 function addOptRow(txt='', correct=false) {
   const b = document.getElementById('optBuilder');
@@ -2314,26 +2382,85 @@ function addOptRow(txt='', correct=false) {
   b.appendChild(r);
 }
 
-function saveQuestion() {
-  const title = document.getElementById('aqTitle').value.trim();
-  const expl = document.getElementById('aqExpl').value.trim();
-  const rows = document.querySelectorAll('#optBuilder .opt-row');
-  const err = document.getElementById('aqErr');
+async function saveQuestion() {
+  var title = document.getElementById('aqTitle').value.trim();
+  var expl  = document.getElementById('aqExpl').value.trim();
+  var rows  = document.querySelectorAll('#optBuilder .opt-row');
+  var err   = document.getElementById('aqErr');
   if (!title) { showErr(err,'Please enter a question.'); return; }
   if (rows.length < 2) { showErr(err,'Add at least 2 options.'); return; }
-  const opts = []; let hasC = false;
-  rows.forEach(r => {
-    const t = r.querySelector('input[type="text"]').value.trim();
-    const c = r.querySelector('input[type="checkbox"]').checked;
+  var opts = []; var hasC = false;
+  rows.forEach(function(r) {
+    var t = r.querySelector('input[type="text"]').value.trim();
+    var c = r.querySelector('input[type="checkbox"]').checked;
     if (t) { opts.push({text:t, isCorrect:c}); if(c) hasC=true; }
   });
   if (opts.length < 2) { showErr(err,'Need at least 2 non-empty options.'); return; }
   if (!hasC) { showErr(err,'Mark at least one option as correct.'); return; }
-  questions.push({ title, options:opts, explanation: expl||'No explanation provided.' });
-  resetState();
-  closeM('addQM');
-  render();
-  setTimeout(() => window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}), 100);
+
+  var newQ = { title:title, options:opts, explanation: expl||'No explanation provided.' };
+
+  var examSel  = document.getElementById('aqExam');
+  var targetId = examSel ? examSel.value : '__current__';
+  var saveBtn  = document.getElementById('aqSaveBtn');
+
+  if (targetId === '__current__') {
+    // Add to running quiz session only
+    questions.push(newQ);
+    resetState();
+    closeM('addQM');
+    render();
+    setTimeout(function(){ window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); }, 100);
+    return;
+  }
+
+  // Save to a specific exam in the library
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+  try {
+    // Fetch current exam questions from GAS
+    var res = await gasGet('getScripts', {});
+    if (!res.ok || !res.scripts) throw new Error('Could not load scripts');
+    var script = res.scripts.find(function(s){ return s.id === targetId; });
+    if (!script) throw new Error('Exam not found');
+    var existing = typeof script.questions === 'string' ? JSON.parse(script.questions) : (script.questions || []);
+    existing.push(newQ);
+    // Delete old and re-save with updated questions
+    await gasPost('deleteScript', { id: targetId });
+    var saved = await gasPost('saveScript', {
+      name: script.name,
+      category: script.category || 'navigation',
+      questionCount: existing.length,
+      createdBy: script.createdBy || (currentUser ? currentUser.name : 'admin'),
+      questions: existing
+    });
+    // Preserve publish status on the new entry
+    if (saved.ok && saved.id && (script.published === '1' || script.published === true)) {
+      await gasPost('publishScript', { id: saved.id, published: true });
+    }
+    // Refresh local exams cache
+    var r2 = await gasGet('getScripts', {});
+    if (r2.ok && r2.scripts) {
+      exams = r2.scripts.map(function(s) {
+        var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
+        return { id:s.id, name:s.name, desc:'By '+(s.createdBy||'admin'),
+          category:s.category||'navigation', questions:qs||[], fromGas:true, noShuffle:true,
+          published:(s.published==='1'||s.published===true||s.published===1),
+          date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''};
+      });
+      _storeSet('exams', exams);
+    }
+    closeM('addQM');
+    // Show success toast
+    var examName = examSel.options[examSel.selectedIndex].dataset.name || 'exam';
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--teal);color:#0a0f1a;font-family:"DM Mono",monospace;font-size:0.75rem;padding:0.6rem 1.2rem;border-radius:20px;z-index:9999;font-weight:600;';
+    toast.textContent = '✓ Question added to "' + examName + '" and saved';
+    document.body.appendChild(toast);
+    setTimeout(function(){ toast.remove(); }, 3000);
+  } catch(e) {
+    showErr(err, 'Error: ' + (e.message||'Save failed'));
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save to Exam'; }
+  }
 }
 
 /* ══════ SCRIPT INPUT ══════ */
