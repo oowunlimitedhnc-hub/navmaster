@@ -2753,7 +2753,7 @@ function renderExams() {
   var html  = '<div class="cat-section-label">' + label + '</div><div class="exam-list">';
 
   visible.forEach(function(ex) {
-    var isPub = isPub(ex);
+    var exIsLive = isPub(ex);
     html += '<div class="exam-item" id="exam-item-' + ex._i + '">';
     html += '<div class="exam-icon">' + icon + '</div>';
     html += '<div class="exam-info">';
@@ -2764,7 +2764,7 @@ function renderExams() {
     html += '<div class="exam-acts">';
     html += '<button class="btn-load" onclick="loadExam(' + ex._i + ')">&#9654; Load</button>';
     if (isAdmin) {
-      if (isPub) {
+      if (exIsLive) {
         html += '<button class="btn-publish published" onclick="window.toggleExamPublish(' + ex._i + ', false)" title="Click to unpublish">&#10003; Live</button>';
       } else {
         html += '<button class="btn-publish unpublished" onclick="window.toggleExamPublish(' + ex._i + ', true)" title="Publish to candidates">&#8679; Publish</button>';
