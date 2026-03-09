@@ -885,6 +885,8 @@
   .btn-publish.unpublished:hover { background:rgba(212,168,67,0.1); }
   .btn-del-script { padding:0.28rem 0.65rem; font-size:0.7rem; font-family:'DM Mono',monospace; border-radius:6px; border:1px solid rgba(239,68,68,0.3); background:transparent; color:#f87171; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
   .btn-del-script:hover { background:rgba(239,68,68,0.1); border-color:#f87171; }
+  .btn-notify { padding:0.28rem 0.75rem; font-size:0.7rem; font-family:'DM Mono',monospace; border-radius:6px; border:1px solid rgba(212,168,67,0.35); background:transparent; color:var(--gold); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .btn-notify:hover { background:rgba(212,168,67,0.1); border-color:var(--gold); }
   .published-badge { display:inline-flex; align-items:center; gap:0.3rem; font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.07em; padding:0.15rem 0.5rem; border-radius:20px; background:rgba(45,212,191,0.12); color:var(--teal); border:1px solid rgba(45,212,191,0.25); }
   .draft-badge { display:inline-flex; align-items:center; gap:0.3rem; font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.07em; padding:0.15rem 0.5rem; border-radius:20px; background:rgba(212,168,67,0.1); color:var(--gold); border:1px solid rgba(212,168,67,0.2); }
 
@@ -1920,6 +1922,25 @@ async function confirmDeleteScript(id, name) {
   await renderScriptStore();
 }
 window.confirmDeleteScript = confirmDeleteScript;
+
+async function notifyStudentsBtn(id, name, btn) {
+  if (!confirm('Send an email notification to all registered students about "' + name + '"?')) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  try {
+    var res = await gasPost('notifyExam', { id: id });
+    if (res.ok) {
+      if (btn) { btn.textContent = '✓ Sent!'; btn.style.color = 'var(--teal)'; btn.style.borderColor = 'var(--teal)'; }
+      setTimeout(function(){ if (btn) { btn.disabled = false; btn.textContent = '🔔 Notify Students'; btn.style.color = ''; btn.style.borderColor = ''; } }, 3000);
+    } else {
+      alert('Could not send: ' + (res.error || 'Unknown error'));
+      if (btn) { btn.disabled = false; btn.textContent = '🔔 Notify Students'; }
+    }
+  } catch(e) {
+    alert('Network error sending notification.');
+    if (btn) { btn.disabled = false; btn.textContent = '🔔 Notify Students'; }
+  }
+}
+window.notifyStudentsBtn = notifyStudentsBtn;
 
 async function togglePublishScript(id, publish) {
   var btn = document.querySelector('#ssi-' + id + ' .btn-publish');
@@ -3538,19 +3559,16 @@ async function saveEditQ(qi) {
     qs[qi].options = newOpts;
     if (expl) qs[qi].explanation = expl;
 
-    // Delete old and re-save with updated questions
-    await gasPost('deleteScript', { id: script.id });
-    var saved = await gasPost('saveScript', {
+    // Safe update: use updateScript to update in-place (no delete risk)
+    var saved = await gasPost('updateScript', {
+      id:            script.id,
       name:          script.name,
       category:      script.category || 'navigation',
       questionCount: qs.length,
       createdBy:     script.createdBy || (currentUser ? currentUser.name : 'admin'),
-      questions:     qs
+      questions:     qs,
+      published:     script.published
     });
-    // Restore published status
-    if (saved.ok && saved.id && script.published === '1') {
-      await gasPost('publishScript', { id: saved.id, published: true });
-    }
     // Refresh local exams cache
     var r2 = await gasGet('getScripts', {});
     if (r2.ok && r2.scripts) {
