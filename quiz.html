@@ -1026,6 +1026,174 @@
   .challenge-status-badge.pending  { background: rgba(212,168,67,0.15); color: var(--gold); border: 1px solid rgba(212,168,67,0.3); }
   .challenge-status-badge.accepted { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
   .challenge-status-badge.rejected { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+
+  /* ══ CREDITS POPUP ══ */
+  #creditsPopup {
+    position: fixed; inset: 0;
+    background: rgba(8,12,22,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  #creditsPopup.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .credits-popup-card {
+    background: linear-gradient(135deg, #1a1200 0%, #0f1929 60%, #0b1120 100%);
+    border: 1px solid rgba(212,168,67,0.4);
+    border-radius: 18px;
+    padding: 2.5rem 2.25rem 2rem;
+    max-width: 400px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,168,67,0.1) inset;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  #creditsPopup.show .credits-popup-card {
+    transform: translateY(0) scale(1);
+  }
+  .credits-popup-card .cpp-shimmer {
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(212,168,67,0.14) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .credits-popup-card .cpp-shimmer2 {
+    position: absolute;
+    bottom: -40px; left: -40px;
+    width: 130px; height: 130px;
+    background: radial-gradient(circle, rgba(45,212,191,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .credits-popup-card .cpp-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .credits-popup-card .cpp-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    font-style: italic;
+  }
+  .credits-popup-card .cpp-welcome-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--teal);
+    background: rgba(45,212,191,0.08);
+    border: 1px solid rgba(45,212,191,0.2);
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+  }
+  .credits-popup-card .cpp-label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.7rem;
+  }
+  .credits-popup-card .cpp-label .dot {
+    width: 5px; height: 5px;
+    background: var(--gold);
+    border-radius: 50%;
+  }
+  .credits-popup-card .cpp-label span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.22em;
+    color: rgba(212,168,67,0.5);
+    text-transform: uppercase;
+  }
+  .credits-popup-card .cpp-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f0c96a, #d4a843);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+  }
+  .credits-popup-card .cpp-school {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    color: rgba(232,237,245,0.4);
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+  }
+  .credits-popup-card .cpp-rule {
+    height: 1px;
+    background: linear-gradient(90deg, rgba(212,168,67,0.4), rgba(45,212,191,0.2), transparent);
+    margin-bottom: 1.25rem;
+  }
+  .credits-popup-card .cpp-contact {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 1.75rem;
+  }
+  .credits-popup-card .cpp-icon {
+    width: 32px; height: 32px;
+    background: rgba(212,168,67,0.1);
+    border: 1px solid rgba(212,168,67,0.2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+  .credits-popup-card .cpp-contact-text strong {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.5rem;
+    color: rgba(212,168,67,0.4);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 0.15rem;
+  }
+  .credits-popup-card .cpp-contact-text a {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(232,237,245,0.6);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .credits-popup-card .cpp-contact-text a:hover { color: var(--teal); }
+  .credits-popup-card .cpp-dismiss {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, var(--gold), #b8882e);
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: #0b1120;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.15s;
+    position: relative;
+    z-index: 1;
+  }
+  .credits-popup-card .cpp-dismiss:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .credits-popup-card .cpp-dismiss:active { transform: translateY(0); }
 </style>
 
 </head>
@@ -1625,7 +1793,16 @@ function onLoginSuccess() {
   }
   render();
   updateRecordsBtnLabel();
+  // Show credits popup for candidates on login
+  if (!currentUser.isAdmin) {
+    window.showCreditsPopup();
+  }
 }
+
+window.showCreditsPopup = function() {
+  var m = document.getElementById('creditsM');
+  if (m) m.style.display = 'flex';
+};
 
 function showAuthErr(el, msg) {
   if (!el) return;
@@ -1890,59 +2067,59 @@ function gasGet(action, params) {
 
 var questions = [
   {
-    title: "When evaluating a passage plan on ECDIS, which management oversight actions are critical for ensuring navigational safety?",
+    title: "A vessel is navigating in the North Atlantic during the ice season. Which actions must the Master take under SOLAS Chapter V and the Bridge Procedure Guide (BPG) upon receiving information regarding the presence of dangerous ice?",
     options: [
-      {text: "Confirm that the look-ahead alarm is set to a proper time interval.", isCorrect: true},
-      { text: "Verify that the safety contour is set correctly for the deepest draft.", isCorrect: true},
-      {text: "Check that all ENCs on the route have been updated to the latest NM.", isCorrect: false},
-      {text: "Review the pick report for any hazards found along the planned track.", isCorrect: false },
-      {text: "Ensure that the cross-track limit is set to a safe distance margin.", isCorrect: true}
+      { text: "Proceed at safe speed and broadcast a danger message to all nearby ships.", isCorrect: true },
+      { text: "Transmit the information to the nearest Coast Guard or relevant authority.", isCorrect: true },
+      { text: "Maintain the current speed while utilizing the searchlight to identify bergs.", isCorrect: false },
+      { text: "Contact the International Ice Patrol specifically for a private routeing plan.", isCorrect: false },
+      { text: "Ensure the information is recorded in the logbook and shared with the team.", isCorrect: true }
     ],
-    explanation: "Management oversight on ECDIS requires specific verification of user-defined safety parameters: Safety Contour (which triggers the grounding alarm), Look-ahead (time/distance for detection), and XTD (defining the corridor of safety). While ENC updates and pick reports are standard planning tasks, the evaluation phase focuses on the integrity of these protective boundaries."
+    explanation: "Under SOLAS V Regulation 31 and 32, the Master is legally obligated to report dangerous ice to all ships in the vicinity and the nearest coastal state. Proceeding at safe speed (Rule 6) and ensuring the bridge team is fully briefed as per BPG B10 (Ice Navigation) are critical safety requirements. Maintaining speed and using searchlights is insufficient and dangerous in reduced visibility, and the IIP provides general broadcasts rather than individual private routeing services."
   },
   {
-    title: "A vessel in the Northern Hemisphere is identified as being in the dangerous semi-circle of a TRS. Which actions are required?",
+    title: "During a voyage on a vessel utilizing ECDIS as the primary means of navigation, a 'Data Quality' (CATZOC) alarm is triggered. What are the management oversight implications for the Chief Mate?",
     options: [
-      { text: "Proceed with the wind on the starboard bow and make as much way.", isCorrect: true},
-      {text: "Increase the vessel speed to cross the path of the storm center.", isCorrect: false },
-      {text: "Alter the course to the right to keep the wind on the star. bow.", isCorrect: true},
-      {text: "Steer a course to place the wind on the starboard quarter area.", isCorrect: false},
-      {text: "Maintain the heading to keep the wind steady on the star. bow.", isCorrect: true}
+      { text: "Evaluate if the safety contour must be increased to account for uncertainty.", isCorrect: true },
+      { text: "Check if the chart data is based on a survey from the early twentieth century.", isCorrect: true },
+      { text: "Increase the cross-track limit to allow more room for positional deviations.", isCorrect: false },
+      { text: "Immediately switch the ECDIS display mode to the standard 'Base Display' set.", isCorrect: false },
+      { text: "Verify if manual position fixes align with the GPS-overlay on the ENC layer.", isCorrect: true }
     ],
-    explanation: "In the dangerous semi-circle (N. Hemisphere), the goal is to haul out of the storm's path. The standard maneuver is to bring the wind onto the starboard bow, make as much way as possible, and alter course to the right as the wind veers to maintain that relative wind position. Placing the wind on the quarter is for the navigable semi-circle."
+    explanation: "CATZOC (Category of Zone of Confidence) indicates the reliability of hydrographic data. If the quality is low (e.g., C, D, or U), the Chief Mate must assess the risk of grounding by adjusting safety margins (contours/depths) and cross-checking positions via terrestrial means (BPG B1). Increasing cross-track limits is counter-intuitive for risk management, and the Base Display removes critical safety information required for navigation."
   },
   {
-    title: "According to MGN 379 and the BPG, which methods are prioritized for verifying the accuracy of electronic position fixes?",
+    title: "A vessel in the Northern Hemisphere is navigating in the vicinity of a Tropical Revolving Storm (TRS). The wind is observed to be veering and the pressure is falling rapidly. What actions should be taken?",
     options: [
-      {text: "Cross-check the GPS position using a different electronic system.", isCorrect: false},
-      {text: "Plot a radar range and bearing of a known object on the chart.", isCorrect: true},
-      {text: "Verify the satellite signal-to-noise ratio on the GNSS receiver.", isCorrect: false },
-      { text: "Compare the GPS coordinates with a visual bearing and a distance.", isCorrect: true},
-      {text: "Use parallel indexing to monitor the ship's track relative to land.", isCorrect: true}
+      { text: "Alter course to bring the wind on the starboard bow and maintain speed.", isCorrect: true },
+      { text: "Identify that the vessel is in the dangerous semi-circle of the storm path.", isCorrect: true },
+      { text: "Bring the wind on the starboard quarter to run toward the navigable side.", isCorrect: false },
+      { text: "Reduce speed significantly to minimize the potential for structural damage.", isCorrect: true },
+      { text: "Change the heading to put the wind on the port side to increase distance.", isCorrect: false }
     ],
-    explanation: "MGN 379 emphasizes that electronic aids are just aids. Primary verification must be through independent means such as visual fixes, radar fixes, or parallel indexing. Comparing one GNSS to another (e.g., GPS to GLONASS) does not protect against common-mode failures like jamming or signal interference."
+    explanation: "In the Northern Hemisphere, a veering wind (changing clockwise) indicates the vessel is in the 'Dangerous Semi-Circle' (right-hand side relative to the storm track). The standard avoiding action for this sector is to place the wind on the starboard bow and make as much headway as possible. Reducing speed is also a prudent move to reduce impact. Placing the wind on the quarter or the port side would likely lead the vessel toward the eye of the storm."
   },
   {
-    title: "Under SOLAS V Regulation 31, what are the Master's obligations and required procedures when ice is reported on or near the track?",
+    title: "When conducting blind pilotage using Radar/ARPA in restricted visibility, which factors most critically affect the reliability of the parallel indexing (PI) technique?",
     options: [
-      {text: "Communicate the ice report to the nearest coast radio station too.", isCorrect: true},
-      { text: "Report the presence of ice to all ships in the vicinity of the area.", isCorrect: true},
-      {text: "Ensure the bridge is manned by an additional lookout at all times.", isCorrect: false},
-      {text: "Record the ice encounter details in the official logbook of ship.", isCorrect: false },
-      {text: "Proceed at a moderate speed or alter the course to clear the ice.", isCorrect: true}
+      { text: "The accuracy of the gyro input providing the heading data to the scanner.", isCorrect: true },
+      { text: "The choice of a conspicuous, stationary radar-reflective point for the PI.", isCorrect: true },
+      { text: "Selection of a moving target to track relative cross-track error changes.", isCorrect: false },
+      { text: "The horizontal beamwidth of the radar affecting the bearing discrimination.", isCorrect: true },
+      { text: "The height of the vessel's antenna which limits the minimum detection range.", isCorrect: false }
     ],
-    explanation: "SOLAS V Reg 31 and 32 mandate Danger Messages. The Master is legally obligated to report ice to nearby ships and the nearest coastal authority. Furthermore, Reg 33 requires the Master to proceed at a moderate speed at night or alter course to pass well clear. While lookouts and logs are standard practice, they are not the core of the specific SOLAS regulatory obligation."
+    explanation: "Parallel Indexing requires a stable gyro input and a fixed, reliable radar-conspicuous target (like a lighthouse or headland). If the gyro is inaccurate, the index line on the screen will not reflect the true track. Beamwidth affects the 'smearing' of targets on the screen, impacting cross-index range precision. PI should never be conducted using moving targets. Antenna height affects the radar horizon but is less critical to the geometric integrity of the PI line itself."
   },
   {
-    title: "When analyzing ARPA information for multiple targets, which factors must the OOW evaluate to determine appropriate avoiding action?",
+    title: "A Chief Mate is analyzing ARPA data for multiple targets. Target A shows a CPA of 0.2nm and a TCPA of 12 minutes, while the True Vector shows it is crossing from port. What is the correct analysis?",
     options: [
-      {text: "Review the history of target movements over the last few mins.", isCorrect: false },
-      {text: "Check the accuracy of the speed and heading inputs to the ARPA.", isCorrect: true},
-      { text: "Assess the relative motion vectors to identify potential CPAs.", isCorrect: true},
-      {text: "Evaluate the true motion vectors to understand target headings.", isCorrect: false},
-      {text: "Monitor the change in the bearing of the target over the time.", isCorrect: true}
+      { text: "The vessel must monitor Target A closely as the give-way vessel in the set.", isCorrect: false },
+      { text: "Identify that the situation constitutes a very high risk of collision at sea.", isCorrect: true },
+      { text: "Maintain the stand-on role while preparing for the last-moment maneuver.", isCorrect: true },
+      { text: "Acknowledge that ARPA data may be subject to errors due to target swaps.", isCorrect: true },
+      { text: "Assume the other vessel will alter course to starboard to pass our stern.", isCorrect: false }
     ],
-    explanation: "Collision risk is assessed via relative motion (CPA/TCPA) and the change of bearing (Rule 7). However, ARPA accuracy is entirely dependent on the integrity of inputs (Gyro/Log); therefore, verifying these inputs is a critical step in evaluating the data. True vectors help with aspect but are not the primary tool for determining risk of collision."
+    explanation: "If Target A is crossing from port, Own Ship is the stand-on vessel (Rule 17). A CPA of 0.2nm is extremely close for a deep-sea vessel, representing a high collision risk. The stand-on vessel must maintain course and speed but must be ready to take action if the give-way vessel fails to do so (Rule 17a-ii). Relying solely on the assumption the other vessel will act is dangerous. ARPA data (MGN 369) can be inaccurate due to target swaps or sensor errors, requiring visual and radar cross-checks."
   }
 ]
 var exams = [], activeExamName = null;
@@ -3520,6 +3697,108 @@ window.addEventListener('DOMContentLoaded', function() {
     alert('initAuth error: ' + e.message);
   }
 });
+
+/* ── Credits Welcome Popup ── */
+window.showCreditsPopup = function() {
+  var el = document.getElementById('creditsPopup');
+  if (!el) return;
+  // Small delay so the page renders first
+  setTimeout(function() { el.classList.add('show'); }, 300);
+};
+window.dismissCredits = function() {
+  var el = document.getElementById('creditsPopup');
+  if (!el) return;
+  el.style.transition = 'opacity 0.3s ease';
+  el.style.opacity = '0';
+  setTimeout(function() {
+    el.style.display = 'none';
+  }, 300);
+};
 </script>
+
+
+
+<!-- ══ CREDITS WELCOME POPUP ══ -->
+<div id="creditsPopup">
+  <div class="credits-popup-card">
+    <div class="cpp-shimmer"></div>
+    <div class="cpp-shimmer2"></div>
+    <div class="cpp-top">
+      <div class="cpp-logo">NavMaster</div>
+      <div class="cpp-welcome-badge">Welcome</div>
+    </div>
+    <div class="cpp-label">
+      <div class="dot"></div>
+      <span>Designed &amp; Published by</span>
+    </div>
+    <div class="cpp-name">Jason Crasto</div>
+    <div class="cpp-school">South Shields Marine School</div>
+    <div class="cpp-rule"></div>
+    <div class="cpp-contact">
+      <div class="cpp-icon">✉</div>
+      <div class="cpp-contact-text">
+        <strong>Contact</strong>
+        <a href="mailto:jason.crst@gmail.com">jason.crst@gmail.com</a>
+      </div>
+    </div>
+    <button class="cpp-dismiss" onclick="window.dismissCredits()">Continue to NavMaster ›</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: CREDITS / WELCOME ══ -->
+<div class="overlay" id="creditsM" style="z-index:9999;">
+  <div class="modal" style="max-width:440px;padding:0;overflow:hidden;border:1px solid rgba(212,168,67,0.35);background:linear-gradient(145deg,#1a1200 0%,#0f1929 60%,#0b1120 100%);">
+
+    <!-- shimmer glows -->
+    <div style="position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(212,168,67,0.13) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+    <div style="position:absolute;bottom:-40px;left:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(45,212,191,0.08) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+
+    <!-- top accent line -->
+    <div style="height:3px;background:linear-gradient(90deg,transparent,var(--gold),rgba(45,212,191,0.6),transparent);"></div>
+
+    <div style="padding:2rem 2rem 1.75rem;position:relative;">
+
+      <!-- Welcome label -->
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1.5rem;">
+        <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0;"></div>
+        <span style="font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.25em;color:rgba(212,168,67,0.55);text-transform:uppercase;">Welcome to NavMaster</span>
+      </div>
+
+      <!-- App title -->
+      <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;background:linear-gradient(135deg,#f0c96a,#d4a843);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;margin-bottom:0.25rem;">MCA Chief Mate</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1rem;color:rgba(232,237,245,0.45);font-style:italic;margin-bottom:1.5rem;">Examination Practice Platform</div>
+
+      <!-- Divider -->
+      <div style="height:1px;background:linear-gradient(90deg,rgba(212,168,67,0.4),rgba(45,212,191,0.2),transparent);margin-bottom:1.5rem;"></div>
+
+      <!-- Creator block -->
+      <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.4rem;">
+        <div style="width:36px;height:36px;background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.22);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:0.85rem;font-weight:700;color:var(--gold);flex-shrink:0;">JC</div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.52rem;letter-spacing:0.18em;color:rgba(212,168,67,0.45);text-transform:uppercase;margin-bottom:0.18rem;">Designed &amp; Published by</div>
+          <div style="font-family:'Playfair Display',serif;font-size:0.95rem;color:var(--text);font-weight:700;">Jason Crasto</div>
+          <div style="font-size:0.7rem;color:rgba(232,237,245,0.4);font-style:italic;font-family:'DM Sans',sans-serif;">South Shields Marine School</div>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div style="display:flex;align-items:center;gap:0.55rem;margin-bottom:1.75rem;">
+        <div style="width:28px;height:28px;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.18);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;">✉</div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:rgba(212,168,67,0.4);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:0.1rem;">Contact</div>
+          <a href="mailto:jason.crst@gmail.com" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:rgba(232,237,245,0.6);text-decoration:none;">jason.crst@gmail.com</a>
+        </div>
+      </div>
+
+      <!-- CTA button -->
+      <button onclick="document.getElementById('creditsM').style.display='none';" style="width:100%;padding:0.75rem;background:linear-gradient(135deg,var(--gold),#b8882e);border:none;border-radius:10px;font-family:'DM Mono',monospace;font-size:0.75rem;font-weight:600;letter-spacing:0.1em;color:#0b1120;cursor:pointer;transition:filter 0.2s;text-transform:uppercase;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='brightness(1)'">
+        Begin Exam Prep &nbsp;&#8594;
+      </button>
+
+    </div>
+  </div>
+</div>
+
+
 </body>
 </html>
