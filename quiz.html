@@ -2215,7 +2215,7 @@ async function submitChallenge() {
   errEl.textContent='';
   var qi=_challengeQi,q=questions[qi];
   try {
-    var res=await gasPost('saveChallenge',{username:currentUser.username,candidateName:currentUser.name,candidateId:currentUser.candidateId||'',exam:activeExamName||'Unknown',questionIndex:qi,questionText:q.title,currentAnswers:q.options.filter(function(o){return o.isCorrect;}).map(function(o){return o.text;}),disputedAnswers:checked.map(function(oi){return q.options[oi].text;}),reason:reason});
+    var res=await gasPost('saveChallenge',{username:currentUser.username,candidateName:currentUser.name,candidateId:currentUser.candidateId||'',exam:activeExamName||'Unknown',questionIndex:qi,questionText:q.title,currentAnswers:JSON.stringify(q.options),disputedAnswers:JSON.stringify(checked.map(function(oi){return q.options[oi];})),reason:reason});
     if(btn){btn.disabled=false;btn.textContent='Submit Challenge';}
     if(res.ok){window._myChallenges[qi]=true;closeM('challengeM');render();}
     else{errEl.textContent=res.error||'Could not submit. Try again.';}
@@ -2296,14 +2296,34 @@ async function resolveChallenge(id, decision) {
 window.resolveChallenge = resolveChallenge;
 
 function openUpdateAnswerModal(challengeId) {
-  // Find the challenge in the current list
-  var cards = document.querySelectorAll('#adminChallengesList .challenge-card');
   var challengeData = window._lastChallenges ? window._lastChallenges.find(function(c){ return String(c.id) === String(challengeId); }) : null;
   if (!challengeData) { alert('Could not find challenge data. Please refresh.'); return; }
 
   var qi = Number(challengeData.questionIndex);
-  if (qi < 0 || qi >= questions.length) { alert('Question index out of range.'); return; }
-  var q = questions[qi];
+
+  // Build question object from challenge data — works even when no exam is loaded
+  // Try questions array first, fall back to challenge's stored data
+  var q = (questions && questions[qi]) ? questions[qi] : null;
+
+  // If not in current questions, reconstruct from challenge fields
+  if (!q) {
+    var currentAnswers = [];
+    try { currentAnswers = typeof challengeData.currentAnswers === 'string' ? JSON.parse(challengeData.currentAnswers) : (challengeData.currentAnswers || []); } catch(_){}
+    var disputedAnswers = [];
+    try { disputedAnswers = typeof challengeData.disputedAnswers === 'string' ? JSON.parse(challengeData.disputedAnswers) : (challengeData.disputedAnswers || []); } catch(_){}
+
+    // currentAnswers is the full options array [{text, isCorrect}]
+    if (currentAnswers.length && typeof currentAnswers[0] === 'object' && currentAnswers[0].text) {
+      q = { title: challengeData.questionText || 'Question', options: currentAnswers };
+    } else if (currentAnswers.length) {
+      // Old format: array of strings — show as options, mark none correct so admin must choose
+      q = { title: challengeData.questionText || 'Question', options: currentAnswers.map(function(t){ return { text: String(t), isCorrect: false }; }) };
+    } else if (disputedAnswers.length && typeof disputedAnswers[0] === 'object') {
+      q = { title: challengeData.questionText || 'Question', options: disputedAnswers };
+    } else {
+      alert('No answer data found in this challenge. Please load the exam first.'); return;
+    }
+  }
 
   // Build modal HTML
   var html = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;" id="updateAnswerOverlay">'
@@ -2346,16 +2366,53 @@ async function confirmUpdateAnswer(qi, challengeId) {
   var note    = (overlay.querySelector('#updateAnswerNote').value || '').trim();
   if (!checked.length) { alert('Please select at least one correct answer.'); return; }
 
-  // Update the question in memory
-  questions[qi].options.forEach(function(o, oi) { o.isCorrect = checked.indexOf(oi) !== -1; });
-  render();
+  var btn = overlay.querySelector('button[onclick*="confirmUpdateAnswer"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  // Find the challenge to get exam info
+  var challengeData = window._lastChallenges ? window._lastChallenges.find(function(c){ return String(c.id) === String(challengeId); }) : null;
+
+  // Update question in memory if currently loaded
+  if (questions && questions[qi]) {
+    questions[qi].options.forEach(function(o, oi) { o.isCorrect = checked.indexOf(oi) !== -1; });
+    render();
+  }
+
+  // Update question in the GAS exam script
+  if (challengeData && challengeData.exam) {
+    try {
+      var scriptsRes = await gasGet('getScripts', {});
+      if (scriptsRes.ok && scriptsRes.scripts) {
+        var script = scriptsRes.scripts.find(function(s){ return s.name === challengeData.exam; });
+        if (script) {
+          var qs = typeof script.questions === 'string' ? JSON.parse(script.questions) : (script.questions || []);
+          if (qs[qi]) {
+            // Get all option texts from the overlay to map back
+            var allLabels = Array.from(overlay.querySelectorAll('input[type=checkbox]')).map(function(cb){ return Number(cb.dataset.oi); });
+            var allChecks = Array.from(overlay.querySelectorAll('input[type=checkbox]')).map(function(cb){ return cb.checked; });
+            qs[qi].options.forEach(function(o, oi) { o.isCorrect = allChecks[oi] === true; });
+            await gasPost('deleteScript', { id: script.id });
+            var saved = await gasPost('saveScript', {
+              name: script.name, category: script.category,
+              questionCount: qs.length, createdBy: script.createdBy || 'admin',
+              questions: qs
+            });
+            // Restore publish status
+            if (saved.ok && saved.id && script.published === '1') {
+              await gasPost('publishScript', { id: saved.id, published: true });
+            }
+          }
+        }
+      }
+    } catch(e) { console.warn('Could not update exam in GAS:', e.message); }
+  }
 
   // Resolve the challenge as accepted
   try {
-    var resolveNote = 'Answer updated. ' + (note || '');
+    var resolveNote = note ? 'Answer updated. ' + note : 'Answer updated by admin.';
     var res = await gasPost('resolveChallenge', { id: challengeId, status: 'accepted', resolvedNote: resolveNote });
     overlay.remove();
-    if (res.ok) { await renderAdminChallenges(); alert('Challenge accepted and answer updated successfully.'); }
+    if (res.ok) { await renderAdminChallenges(); alert('✓ Challenge accepted and answer updated in the exam.'); }
     else { alert('Challenge resolved but could not save to server: ' + (res.error || '')); }
   } catch(e) { overlay.remove(); alert('Network error saving resolution.'); }
 }
