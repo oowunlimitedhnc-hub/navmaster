@@ -1938,24 +1938,23 @@ var scriptCat = 'navigation';
       if (badge) badge.textContent = exams.length;
     }, 0);
   }
-  // Background fetch from GAS to sync latest scripts
+  // Background fetch from GAS — full replace so published status is always current
   setTimeout(function() {
     gasGet('getScripts', {}).then(function(res) {
       if (!res.ok || !res.scripts) return;
-      var changed = false;
-      visibleScripts.forEach(function(s) {
-        var exists = exams.some(function(e) { return e.name === s.name; });
-        if (!exists && s.questions) {
-          var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
-          exams.push({ name:s.name, desc:'By '+(s.createdBy||'admin'), category:s.category||'navigation',
-            questions:qs, fromGas:true, noShuffle:true, id:s.id, published:(s.published==='1'||s.published===true||s.published===1), date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'' });
-          changed = true;
-        }
+      exams = res.scripts.map(function(s) {
+        var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
+        return { id:s.id, name:s.name, desc:'By '+(s.createdBy||'admin'),
+          category:s.category||'navigation', questions:qs||[],
+          fromGas:true, noShuffle:true,
+          published:(s.published==='1'||s.published===true||s.published===1),
+          date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''};
       });
-      if (changed) {
-        _storeSet('exams', exams);
-        var badge = document.getElementById('examBadge');
-        if (badge) badge.textContent = exams.length;
+      _storeSet('exams', exams);
+      var badge = document.getElementById('examBadge');
+      if (badge) {
+        var isAdmin = (function(){ try { var u=JSON.parse(localStorage.getItem('mca_session')||'{}'); return !!u.isAdmin; } catch(_){ return false; } })();
+        badge.textContent = isAdmin ? exams.length : exams.filter(function(e){ return e.published; }).length;
       }
     }).catch(function(){});
   }, 1500);
@@ -2676,6 +2675,9 @@ function _syncToGas(callback) {
 /* ══════ EXAM LIBRARY ══════ */
 window.openExams = async function openExams() {
   openM('examsM');
+  // Show loading
+  var body = document.getElementById('examListBody');
+  if (body) body.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted);font-size:0.8rem;">Loading exams…</div>';
   try {
     var res = await gasGet('getScripts', {});
     if (res.ok && res.scripts) {
@@ -2806,16 +2808,31 @@ function confirmDeleteExam(i) {
 }
 window.confirmDeleteExam = confirmDeleteExam;
 
-function toggleExamPublish(i, publish) {
+async function toggleExamPublish(i, publish) {
   var ex = exams[i];
   if (!ex) return;
-  ex.published = publish ? true : false;
-  exams[i] = ex;
+  if (!ex.id) { alert('This exam has no server ID — please re-save it via Script Input first.'); return; }
+  // Optimistic update
+  exams[i].published = publish;
   _storeSet('exams', exams);
-  // Sync to GAS if it has an id
-  if (ex.id) {
-    gasPost('publishScript', { id: ex.id, published: publish }).catch(function(){});
-  }
+  renderExams();
+  try {
+    var res = await gasPost('publishScript', { id: String(ex.id), published: publish });
+    if (!res.ok) { alert('Could not update: ' + (res.error||'unknown error')); exams[i].published = !publish; _storeSet('exams',exams); renderExams(); return; }
+    // Re-fetch from GAS to confirm
+    var r2 = await gasGet('getScripts', {});
+    if (r2.ok && r2.scripts) {
+      exams = r2.scripts.map(function(s) {
+        var qs = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
+        return { id:s.id, name:s.name, desc:'By '+(s.createdBy||'admin'), category:s.category||'navigation',
+          questions:qs||[], noShuffle:true, fromGas:true,
+          published:(s.published==='1'||s.published===true||s.published===1),
+          date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''};
+      });
+      _storeSet('exams', exams);
+      document.getElementById('examBadge').textContent = exams.length;
+    }
+  } catch(e) { console.error('toggleExamPublish error:', e); }
   renderExams();
 }
 window.toggleExamPublish = toggleExamPublish;
