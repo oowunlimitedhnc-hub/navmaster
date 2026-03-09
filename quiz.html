@@ -3483,32 +3483,33 @@ function addEditOptRow() {
   list.appendChild(div);
 }
 
-function saveEditQ(qi) {
-  const err = document.getElementById('editErr');
-  const list = document.getElementById('editOptList');
-  const rows = list.querySelectorAll('.edit-opt-row');
-  const expl = document.getElementById('editExpl').value.trim();
-  const newOpts = [];
+async function saveEditQ(qi) {
+  var err  = document.getElementById('editErr');
+  var list = document.getElementById('editOptList');
+  var rows = list.querySelectorAll('.edit-opt-row');
+  var expl = document.getElementById('editExpl').value.trim();
+  var newOpts = [];
 
-  rows.forEach(row => {
-    const id = row.id.replace('editOptRow-', '');
-    const txtEl = document.getElementById('editOptTxt-' + id);
-    const togEl = document.getElementById('editOptToggle-' + id);
+  rows.forEach(function(row) {
+    var id    = row.id.replace('editOptRow-', '');
+    var txtEl = document.getElementById('editOptTxt-' + id);
+    var togEl = document.getElementById('editOptToggle-' + id);
     if (!txtEl || !togEl) return;
-    const txt = txtEl.value.trim();
+    var txt = txtEl.value.trim();
     if (!txt) return;
     newOpts.push({ text: txt, isCorrect: togEl.classList.contains('is-correct') });
   });
 
   if (newOpts.length < 2) { showErr(err, 'Need at least 2 options.'); return; }
-  if (!newOpts.some(o => o.isCorrect)) { showErr(err, 'Mark at least one option as correct.'); return; }
+  if (!newOpts.some(function(o){ return o.isCorrect; })) { showErr(err, 'Mark at least one option as correct.'); return; }
 
+  // Update in memory
   questions[qi].options = newOpts;
   if (expl) questions[qi].explanation = expl;
 
-  // Reset this question's state so it can be re-answered
+  // Reset this question's state
   answered[qi] = false;
-  scores[qi] = null;
+  scores[qi]   = null;
   selected[qi] = new Set();
   if (quizSubmitted) {
     quizSubmitted = false;
@@ -3518,10 +3519,59 @@ function saveEditQ(qi) {
 
   closeM('editQM');
   render();
-  setTimeout(() => {
-    const cards = document.querySelectorAll('.q-card');
+  setTimeout(function() {
+    var cards = document.querySelectorAll('.q-card');
     if (cards[qi]) cards[qi].scrollIntoView({ behavior:'smooth', block:'center' });
   }, 150);
+
+  // ── Push edit back to GAS exam so candidates see the update ──
+  if (!activeExamName) return; // session-only questions, nothing to persist
+  try {
+    var scriptsRes = await gasGet('getScripts', {});
+    if (!scriptsRes.ok || !scriptsRes.scripts) return;
+    var script = scriptsRes.scripts.find(function(s){ return s.name === activeExamName; });
+    if (!script) return;
+
+    var qs = typeof script.questions === 'string' ? JSON.parse(script.questions) : (script.questions || []);
+    if (!qs[qi]) return;
+
+    qs[qi].options = newOpts;
+    if (expl) qs[qi].explanation = expl;
+
+    // Delete old and re-save with updated questions
+    await gasPost('deleteScript', { id: script.id });
+    var saved = await gasPost('saveScript', {
+      name:          script.name,
+      category:      script.category || 'navigation',
+      questionCount: qs.length,
+      createdBy:     script.createdBy || (currentUser ? currentUser.name : 'admin'),
+      questions:     qs
+    });
+    // Restore published status
+    if (saved.ok && saved.id && script.published === '1') {
+      await gasPost('publishScript', { id: saved.id, published: true });
+    }
+    // Refresh local exams cache
+    var r2 = await gasGet('getScripts', {});
+    if (r2.ok && r2.scripts) {
+      exams = r2.scripts.map(function(s) {
+        var qArr = typeof s.questions === 'string' ? JSON.parse(s.questions) : s.questions;
+        return { id:s.id, name:s.name, desc:'By '+(s.createdBy||'admin'),
+          category:s.category||'navigation', questions:qArr||[], fromGas:true, noShuffle:true,
+          published:(s.published==='1'||s.published===true||s.published===1),
+          date:s.created?new Date(s.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''};
+      });
+      _storeSet('exams', exams);
+    }
+    // Show brief success toast
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--teal);color:#0a0f1a;font-family:"DM Mono",monospace;font-size:0.72rem;padding:0.5rem 1.2rem;border-radius:20px;z-index:9999;font-weight:600;pointer-events:none;';
+    toast.textContent = '✓ Question updated in "' + activeExamName + '"';
+    document.body.appendChild(toast);
+    setTimeout(function(){ toast.remove(); }, 3000);
+  } catch(e) {
+    console.warn('saveEditQ GAS sync error:', e.message);
+  }
 }
 
 /* ══════════════════════════════════════
