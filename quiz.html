@@ -2265,13 +2265,14 @@ async function renderAdminChallenges() {
       var resolved = c.status !== 'pending';
       var cid = String(c.id);
       // Safe parse currentAnswers and disputedAnswers
-      var cur = [], disp = [];
-      try { var cr = c.currentAnswers; cur  = typeof cr === 'string' ? JSON.parse(cr || '[]') : (cr || []); } catch(_){}
-      try { var dr = c.disputedAnswers; disp = typeof dr === 'string' ? JSON.parse(dr || '[]') : (dr || []); } catch(_){}
-      // Extract display text from object {text,isCorrect} or plain string
+      function safeParse(v) { try { var p = typeof v==='string' ? JSON.parse(v||'[]') : v; return Array.isArray(p) ? p : []; } catch(_){ return []; } }
+      var cur  = safeParse(c.currentAnswers);
+      var disp = safeParse(c.disputedAnswers);
+      // Extract display text from {text,isCorrect} object or plain string
       function optText(a) { return (a && typeof a === 'object') ? (a.text || '') : String(a || ''); }
-      // Show only correct ones from cur (full options array), or all if legacy strings
-      var markedCorrect = (cur.length && typeof cur[0] === 'object') ? cur.filter(function(o){ return o.isCorrect; }) : cur;
+      // Show only isCorrect:true entries from cur if objects, else show all
+      var markedCorrect = (cur.length && cur[0] && typeof cur[0]==='object') ? cur.filter(function(o){ return o.isCorrect; }) : cur;
+      if (!Array.isArray(markedCorrect)) markedCorrect = [];
       html += '<div class="challenge-card' + (resolved ? ' resolved' : '') + '">';
       html += '<div class="challenge-meta">#' + c.id + ' &middot; <strong style="color:var(--white);">' + (c.candidateName || c.username || '') + '</strong>';
       html += (c.candidateId ? ' (' + c.candidateId + ')' : '') + ' &middot; ' + (c.exam || '') + ' &middot; ' + (c.date || '');
