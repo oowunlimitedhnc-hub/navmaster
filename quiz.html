@@ -2250,8 +2250,9 @@ async function renderAdminChallenges() {
   if (!el) return;
   el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">Loading...</div>';
   try {
-    var res     = await gasGet('getChallenges', {});
-    var list    = (res.ok && res.challenges) ? res.challenges : [];
+    var res  = await gasGet('getChallenges', {});
+    if (!res.ok) throw new Error(res.error || 'Server error');
+    var list = res.challenges || [];
     var pending = list.filter(function(c){ return c.status === 'pending'; }).length;
     if (badge) badge.textContent = pending;
     window._lastChallenges = list;
@@ -2259,38 +2260,52 @@ async function renderAdminChallenges() {
       el.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted);">No challenges yet.</div>';
       return;
     }
-    window._lastChallenges = list;
     var html = '';
     list.forEach(function(c) {
       var resolved = c.status !== 'pending';
-      var cur  = typeof c.currentAnswers  === 'string' ? JSON.parse(c.currentAnswers  || '[]') : (c.currentAnswers  || []);
-      var disp = typeof c.disputedAnswers === 'string' ? JSON.parse(c.disputedAnswers || '[]') : (c.disputedAnswers || []);
-      var cid  = String(c.id);
+      var cid = String(c.id);
+      // Safe parse currentAnswers and disputedAnswers
+      var cur = [], disp = [];
+      try { var cr = c.currentAnswers; cur  = typeof cr === 'string' ? JSON.parse(cr || '[]') : (cr || []); } catch(_){}
+      try { var dr = c.disputedAnswers; disp = typeof dr === 'string' ? JSON.parse(dr || '[]') : (dr || []); } catch(_){}
+      // Extract display text from object {text,isCorrect} or plain string
+      function optText(a) { return (a && typeof a === 'object') ? (a.text || '') : String(a || ''); }
+      // Show only correct ones from cur (full options array), or all if legacy strings
+      var markedCorrect = (cur.length && typeof cur[0] === 'object') ? cur.filter(function(o){ return o.isCorrect; }) : cur;
       html += '<div class="challenge-card' + (resolved ? ' resolved' : '') + '">';
-      html += '<div class="challenge-meta">#' + c.id + ' &middot; <strong style="color:var(--white);">' + (c.candidateName || c.username) + '</strong>';
+      html += '<div class="challenge-meta">#' + c.id + ' &middot; <strong style="color:var(--white);">' + (c.candidateName || c.username || '') + '</strong>';
       html += (c.candidateId ? ' (' + c.candidateId + ')' : '') + ' &middot; ' + (c.exam || '') + ' &middot; ' + (c.date || '');
       html += '<span class="challenge-status-badge ' + c.status + '">' + c.status + '</span></div>';
-      html += '<div class="challenge-q">Q' + (Number(c.questionIndex) + 1) + ': ' + c.questionText + '</div>';
-      html += '<div class="challenge-reason">' + c.reason + '</div>';
+      html += '<div class="challenge-q">Q' + (Number(c.questionIndex) + 1) + ': ' + (c.questionText || '') + '</div>';
+      html += '<div class="challenge-reason">' + (c.reason || '') + '</div>';
       html += '<div class="challenge-opts-list">';
-      html += '<div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase;">Marked correct:</div>';
-      cur.forEach(function(a)  { html += '<span>' + a + '</span>'; });
-      html += '<div style="font-size:0.65rem;color:#f87171;margin:0.4rem 0 0.2rem;text-transform:uppercase;">Candidate believes:</div>';
-      disp.forEach(function(a) { html += '<span class="disputed">' + a + '</span>'; });
+      html += '<div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase;">Marked correct in exam:</div>';
+      if (markedCorrect.length) {
+        markedCorrect.forEach(function(a) { html += '<span>' + optText(a) + '</span>'; });
+      } else {
+        html += '<span style="color:var(--muted);font-style:italic;">None recorded</span>';
+      }
+      html += '<div style="font-size:0.65rem;color:#f87171;margin:0.4rem 0 0.2rem;text-transform:uppercase;">Candidate believes correct:</div>';
+      if (disp.length) {
+        disp.forEach(function(a) { html += '<span class="disputed">' + optText(a) + '</span>'; });
+      } else {
+        html += '<span style="color:var(--muted);font-style:italic;">None recorded</span>';
+      }
       html += '</div>';
       if (!resolved) {
         html += '<div class="challenge-acts">';
-        html += '<button class="btn-ghost-sm" style="color:var(--teal);border-color:rgba(45,212,191,0.3);" onclick="resolveChallenge(this.dataset.id,\'accepted\')" data-id="' + cid + '">Accept</button>';
-        html += '<button class="btn-ghost-sm" style="color:#f87171;border-color:rgba(239,68,68,0.3);" onclick="resolveChallenge(this.dataset.id,\'rejected\')" data-id="' + cid + '">Reject</button>';
+        html += '<button class="btn-ghost-sm" style="color:var(--teal);border-color:rgba(45,212,191,0.3);" onclick="resolveChallenge(this.dataset.id,\'accepted\')" data-id="' + cid + '">&#10003; Accept</button>';
+        html += '<button class="btn-ghost-sm" style="color:#f87171;border-color:rgba(239,68,68,0.3);" onclick="resolveChallenge(this.dataset.id,\'rejected\')" data-id="' + cid + '">&#10005; Reject</button>';
         html += '</div>';
       } else {
-        html += '<div style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Resolved: ' + (c.resolvedNote || '') + '</div>';
+        html += '<div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem;padding:0.35rem 0.6rem;background:rgba(255,255,255,0.03);border-radius:6px;">Resolved: ' + (c.resolvedNote || '—') + '</div>';
       }
       html += '</div>';
     });
     el.innerHTML = html;
   } catch(e) {
-    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Error loading challenges.</div>';
+    console.error('renderAdminChallenges:', e);
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Error: ' + (e.message || 'Could not load challenges') + '</div>';
   }
 }
 window.renderAdminChallenges = renderAdminChallenges;
